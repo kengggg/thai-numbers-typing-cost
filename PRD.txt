@@ -1,0 +1,17 @@
+# Introduction
+
+Thai government inconsistently using mix of Thai and International numbers in digital documents, where it creats confusions and obstructed digital data processing and calculation.
+
+I want to test the "cost" of typing thai numbers (U+0E50 - U+0E59) comparing to typing international number (U+0030 - U+0039) on the same document.
+The current matrix i can think of is `time` where one study from U Michigan give an average typist uses ~0.28s per keystroke,
+and typing a "Shifted" character as Thai numbers are now located on Thai Kedmanee keymap would cost twice as typing international number.
+
+I'm having a 2017 Thai constitution `./data/thai-con.txt` as a standard benchmark due to it can represent what's a regular government document looks like.
+
+# Research Questions
+
+1. How much cost of typing a regular document `data/thai-con.txt` using Thai numbers (U+0E50 - U+0E59) on Thai Kedmanee Keyboard
+2. How much cost of typing a regular document `data/thai-con.txt` using International numbers (U+0030 - U+0039) on Thai Kedmanee Keyboard
+3. How much cost of typing a regular document `data/thai-con.txt` using International numbers (U+0030 - U+0039) on Thai Pattajoti Keyboard
+4. How much cost of typing a regular document `data/thai-con.txt` using International numbers (U+0030 - U+0039) on Thai Pattajoti Keyboard
+5. What's and how the "LOST" looks like using Thai numbers on digital documents
