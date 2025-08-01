@@ -470,11 +470,11 @@ class TestSystemIntegration:
         assert not pattajoti_info.requires_shift, "Research assumes Thai digits don't require SHIFT on Pattajoti"
         
         pattajoti_cost = pattajoti_layout.calculate_typing_cost(thai_digit, base_time)
-        
+
         assert pattajoti_cost == base_time, (
             f"Pattajoti no-SHIFT assumption validation failed: expected {base_time}, got {pattajoti_cost}"
         )
-        
+
         # The research conclusion should be mathematically sound
         efficiency_gain = ((kedmanee_cost - pattajoti_cost) / kedmanee_cost) * 100
         assert abs(efficiency_gain - 50.0) < 0.01, (
@@ -487,12 +487,12 @@ def run_all_validations():
     """Run all validation tests in legacy format for backward compatibility."""
     import subprocess
     import sys
-    
+
     # Run pytest on this module
     result = subprocess.run([
         sys.executable, '-m', 'pytest', __file__, '-v', '--tb=short'
     ], capture_output=True, text=True)
-    
+
     print("THAI KEYBOARD LAYOUT VALIDATION TEST SUITE")
     print("=" * 60)
     print("Enhanced validation tests using pytest framework")
@@ -507,7 +507,7 @@ def run_all_validations():
         if result.stderr:
             print("\nErrors:")
             print(result.stderr)
-    
+
     return result.returncode == 0
 
 
