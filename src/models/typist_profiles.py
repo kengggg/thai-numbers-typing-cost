@@ -11,7 +11,7 @@ from typing import Dict, Any
 
 class TypistProfile:
     """Represents different typist skill levels with associated keystroke times."""
-    
+
     PROFILES = {
         'expert': {
             'name': 'Expert Typist (90 WPM)',
@@ -34,14 +34,14 @@ class TypistProfile:
             'description': 'Hunt-and-peck typist, very slow typing'
         }
     }
-    
+
     @classmethod
     def get_profile(cls, profile_name: str) -> Dict[str, Any]:
         """Get a typist profile by name."""
         if profile_name not in cls.PROFILES:
             raise ValueError(f"Unknown typist profile: {profile_name}")
         return cls.PROFILES[profile_name]
-    
+
     @classmethod
     def list_profiles(cls) -> None:
         """Print formatted list of available typist profiles."""
@@ -51,7 +51,7 @@ class TypistProfile:
             print(f"  {key:<8}: {profile['name']} ({profile['keystroke_time']}s per keystroke)")
             print(f"           {profile['description']}")
             print()
-    
+
     @classmethod
     def get_all_profiles(cls) -> Dict[str, Dict[str, Any]]:
         """Get all available typist profiles."""
@@ -61,13 +61,13 @@ class TypistProfile:
 if __name__ == "__main__":
     """Demonstrate typist profile functionality."""
     import sys
-    
+
     print("🎯 Thai Numbers Typing Cost Analysis - Typist Profiles Module")
     print("=" * 70)
-    
+
     # List all profiles
     TypistProfile.list_profiles()
-    
+
     # Test profile retrieval
     if len(sys.argv) > 1:
         profile_name = sys.argv[1]
@@ -84,5 +84,5 @@ if __name__ == "__main__":
     else:
         print("💡 Usage: python typist_profiles.py [profile_name]")
         print("   Example: python typist_profiles.py average")
-    
+
     print("\n✅ Typist profiles module test completed successfully!")

@@ -16,9 +16,9 @@ class KeyboardType(Enum):
 
 class KeyInfo:
     """Information about a key's typing characteristics."""
-    
-    def __init__(self, char: str, requires_shift: bool = False, 
-                 hand: str = "unknown", finger: str = "unknown", 
+
+    def __init__(self, char: str, requires_shift: bool = False,
+                 hand: str = "unknown", finger: str = "unknown",
                  row: int = 0):
         self.char = char
         self.requires_shift = requires_shift
@@ -29,23 +29,23 @@ class KeyInfo:
 
 class ThaiKeyboardLayout:
     """Base class for Thai keyboard layouts."""
-    
+
     def __init__(self, layout_type: KeyboardType):
         self.layout_type = layout_type
         self.key_map: Dict[str, KeyInfo] = {}
         self._initialize_layout()
-    
+
     def _initialize_layout(self):
         """Initialize the keyboard layout. Override in subclasses."""
         raise NotImplementedError
-    
+
     def get_key_info(self, char: str) -> Optional[KeyInfo]:
         """Get key information for a character."""
         return self.key_map.get(char)
-    
+
     def calculate_typing_cost(self, char: str, base_keystroke_time: float = 0.28) -> float:
         """Calculate typing cost for a character in seconds.
-        
+
         Args:
             char: Character to calculate cost for
             base_keystroke_time: Base time per keystroke in seconds
@@ -53,20 +53,20 @@ class ThaiKeyboardLayout:
         key_info = self.get_key_info(char)
         if not key_info:
             return base_keystroke_time  # Default cost for unknown characters
-        
+
         cost = base_keystroke_time
-        
+
         # Double cost for shifted characters (core research question)
         if key_info.requires_shift:
             cost *= 2.0
-            
+
         return cost
-    
+
     def get_layout_info(self) -> Dict:
         """Get information about the keyboard layout."""
         total_keys = len(self.key_map)
         shifted_keys = sum(1 for key in self.key_map.values() if key.requires_shift)
-        
+
         return {
             'layout_type': self.layout_type.value,
             'total_mapped_keys': total_keys,
@@ -77,15 +77,15 @@ class ThaiKeyboardLayout:
 
 class KedmaneeLayout(ThaiKeyboardLayout):
     """Thai Kedmanee keyboard layout."""
-    
+
     def __init__(self):
         super().__init__(KeyboardType.KEDMANEE)
-    
+
     def _initialize_layout(self):
         """Initialize Kedmanee layout with key positions and characteristics.
         Based on TIS 820-2535 Thai Keyboard Layout Standard.
         """
-        
+
         # Thai digits on Kedmanee require SHIFT key (located on number row)
         thai_digits = {
             '๐': KeyInfo('๐', requires_shift=True, hand="right", finger="pinky", row=3),
@@ -99,7 +99,7 @@ class KedmaneeLayout(ThaiKeyboardLayout):
             '๘': KeyInfo('๘', requires_shift=True, hand="right", finger="middle", row=3),
             '๙': KeyInfo('๙', requires_shift=True, hand="right", finger="ring", row=3),
         }
-        
+
         # International digits on Kedmanee (no shift required, on number row)
         intl_digits = {
             '0': KeyInfo('0', requires_shift=False, hand="right", finger="pinky", row=3),
@@ -113,7 +113,7 @@ class KedmaneeLayout(ThaiKeyboardLayout):
             '8': KeyInfo('8', requires_shift=False, hand="right", finger="middle", row=3),
             '9': KeyInfo('9', requires_shift=False, hand="right", finger="ring", row=3),
         }
-        
+
         # Thai consonants and vowels based on TIS 820-2535 standard
         thai_characters = {
             # Row 2 (Top row) - Based on QWERTYUIOP positions
@@ -127,7 +127,7 @@ class KedmaneeLayout(ThaiKeyboardLayout):
             'น': KeyInfo('น', requires_shift=False, hand="right", finger="middle", row=2),
             'ย': KeyInfo('ย', requires_shift=False, hand="right", finger="ring", row=2),
             'บ': KeyInfo('บ', requires_shift=False, hand="right", finger="pinky", row=2),
-            
+
             # Row 1 (Home row) - Based on ASDFGHJKL; positions
             'ฟ': KeyInfo('ฟ', requires_shift=False, hand="left", finger="pinky", row=1),
             'ห': KeyInfo('ห', requires_shift=False, hand="left", finger="ring", row=1),
@@ -139,7 +139,7 @@ class KedmaneeLayout(ThaiKeyboardLayout):
             'า': KeyInfo('า', requires_shift=False, hand="right", finger="middle", row=1),
             'ส': KeyInfo('ส', requires_shift=False, hand="right", finger="ring", row=1),
             'ว': KeyInfo('ว', requires_shift=False, hand="right", finger="pinky", row=1),
-            
+
             # Row 0 (Bottom row) - Based on ZXCVBNM,./ positions
             'ผ': KeyInfo('ผ', requires_shift=False, hand="left", finger="pinky", row=0),
             'ป': KeyInfo('ป', requires_shift=False, hand="left", finger="ring", row=0),
@@ -151,7 +151,7 @@ class KedmaneeLayout(ThaiKeyboardLayout):
             'ม': KeyInfo('ม', requires_shift=False, hand="right", finger="middle", row=0),
             'ใ': KeyInfo('ใ', requires_shift=False, hand="right", finger="ring", row=0),
             'ฝ': KeyInfo('ฝ', requires_shift=False, hand="right", finger="pinky", row=0),
-            
+
             # Common Thai characters likely to appear in government documents
             'ช': KeyInfo('ช', requires_shift=True, hand="left", finger="middle", row=1),  # Shifted ก
             'ซ': KeyInfo('ซ', requires_shift=True, hand="right", finger="ring", row=1),  # Shifted ส
@@ -163,16 +163,16 @@ class KedmaneeLayout(ThaiKeyboardLayout):
             'ข': KeyInfo('ข', requires_shift=True, hand="left", finger="ring", row=1),  # Shifted ห
             'ล': KeyInfo('ล', requires_shift=True, hand="right", finger="ring", row=1),  # Shifted ส (alt)
             'ง': KeyInfo('ง', requires_shift=True, hand="left", finger="ring", row=0),  # Shifted ป
-            
+
             # Additional Thai vowels and characters for complete coverage
             'ุ': KeyInfo('ุ', requires_shift=True, hand="right", finger="index", row=0),  # Sara u
-            'ู': KeyInfo('ู', requires_shift=True, hand="right", finger="middle", row=0),  # Sara uu  
+            'ู': KeyInfo('ู', requires_shift=True, hand="right", finger="middle", row=0),  # Sara uu
             'ึ': KeyInfo('ึ', requires_shift=True, hand="left", finger="middle", row=0),  # Sara ue
             'ฎ': KeyInfo('ฎ', requires_shift=True, hand="left", finger="middle", row=2),  # Do chada
             'ธ': KeyInfo('ธ', requires_shift=True, hand="right", finger="index", row=1),  # Tho thung
             'ศ': KeyInfo('ศ', requires_shift=True, hand="right", finger="ring", row=0),  # So sala
             'โ': KeyInfo('โ', requires_shift=True, hand="right", finger="pinky", row=2),  # Sara o
-            
+
             # Common punctuation and symbols
             ' ': KeyInfo(' ', requires_shift=False, hand="both", finger="thumb", row=0),
             '.': KeyInfo('.', requires_shift=False, hand="right", finger="ring", row=0),
@@ -183,7 +183,7 @@ class KedmaneeLayout(ThaiKeyboardLayout):
             '(': KeyInfo('(', requires_shift=True, hand="right", finger="ring", row=3),
             ')': KeyInfo(')', requires_shift=True, hand="right", finger="pinky", row=3),
         }
-        
+
         self.key_map.update(thai_digits)
         self.key_map.update(intl_digits)
         self.key_map.update(thai_characters)
@@ -191,15 +191,15 @@ class KedmaneeLayout(ThaiKeyboardLayout):
 
 class PattajotiLayout(ThaiKeyboardLayout):
     """Thai Pattajoti keyboard layout."""
-    
+
     def __init__(self):
         super().__init__(KeyboardType.PATTAJOTI)
-    
+
     def _initialize_layout(self):
         """Initialize Pattajoti layout with key positions and characteristics.
         Based on observed Pattajoti keyboard layout with Thai-optimized character placement.
         """
-        
+
         # Thai digits on Pattajoti: NO SHIFT required!
         # Correct order from left to right: ๒๓๔๕๗๘๙๐๑๖
         thai_digits = {
@@ -214,7 +214,7 @@ class PattajotiLayout(ThaiKeyboardLayout):
             '๑': KeyInfo('๑', requires_shift=False, hand="right", finger="ring", row=3),
             '๖': KeyInfo('๖', requires_shift=False, hand="right", finger="pinky", row=3),
         }
-        
+
         # International digits on Pattajoti (generally easier access than Kedmanee)
         intl_digits = {
             '0': KeyInfo('0', requires_shift=False, hand="right", finger="pinky", row=3),
@@ -228,7 +228,7 @@ class PattajotiLayout(ThaiKeyboardLayout):
             '8': KeyInfo('8', requires_shift=False, hand="right", finger="middle", row=3),
             '9': KeyInfo('9', requires_shift=False, hand="right", finger="ring", row=3),
         }
-        
+
         # Thai characters based on Pattajoti layout - optimized for Thai text
         thai_characters = {
             # Row 2 (Top row) - Thai-optimized placement
@@ -242,7 +242,7 @@ class PattajotiLayout(ThaiKeyboardLayout):
             'ฉ': KeyInfo('ฉ', requires_shift=False, hand="right", finger="middle", row=2),
             'ช': KeyInfo('ช', requires_shift=False, hand="right", finger="ring", row=2),
             'ซ': KeyInfo('ซ', requires_shift=False, hand="right", finger="pinky", row=2),
-            
+
             # Row 1 (Home row) - Most frequently used Thai characters
             'ท': KeyInfo('ท', requires_shift=False, hand="left", finger="pinky", row=1),
             'ร': KeyInfo('ร', requires_shift=False, hand="left", finger="ring", row=1),
@@ -254,7 +254,7 @@ class PattajotiLayout(ThaiKeyboardLayout):
             'ส': KeyInfo('ส', requires_shift=False, hand="right", finger="middle", row=1),
             'ห': KeyInfo('ห', requires_shift=False, hand="right", finger="ring", row=1),
             'อ': KeyInfo('อ', requires_shift=False, hand="right", finger="pinky", row=1),
-            
+
             # Row 0 (Bottom row)
             'ผ': KeyInfo('ผ', requires_shift=False, hand="left", finger="pinky", row=0),
             'ฝ': KeyInfo('ฝ', requires_shift=False, hand="left", finger="ring", row=0),
@@ -266,7 +266,7 @@ class PattajotiLayout(ThaiKeyboardLayout):
             'ต': KeyInfo('ต', requires_shift=False, hand="right", finger="middle", row=0),
             'ถ': KeyInfo('ถ', requires_shift=False, hand="right", finger="ring", row=0),
             'ก': KeyInfo('ก', requires_shift=False, hand="right", finger="pinky", row=0),
-            
+
             # Common vowels and tone marks (frequently used in Thai text)
             'า': KeyInfo('า', requires_shift=False, hand="right", finger="middle", row=1),  # Most common vowel
             'ิ': KeyInfo('ิ', requires_shift=False, hand="left", finger="index", row=0),
@@ -288,13 +288,13 @@ class PattajotiLayout(ThaiKeyboardLayout):
             '๊': KeyInfo('๊', requires_shift=False, hand="right", finger="middle", row=1),  # Mai tri
             '๋': KeyInfo('๋', requires_shift=False, hand="right", finger="ring", row=1),  # Mai chattawa
             '์': KeyInfo('์', requires_shift=False, hand="right", finger="pinky", row=1),  # Thanthakhat
-            
+
             # Additional Thai characters for complete coverage
             'ธ': KeyInfo('ธ', requires_shift=False, hand="left", finger="middle", row=1),  # Tho thung
-            'ศ': KeyInfo('ศ', requires_shift=False, hand="left", finger="ring", row=1),   # So sala  
+            'ศ': KeyInfo('ศ', requires_shift=False, hand="left", finger="ring", row=1),   # So sala
             'ฎ': KeyInfo('ฎ', requires_shift=False, hand="left", finger="index", row=1),   # Do chada
             'ป': KeyInfo('ป', requires_shift=False, hand="left", finger="ring", row=0),   # Po pla
-            
+
             # Common punctuation and symbols
             ' ': KeyInfo(' ', requires_shift=False, hand="both", finger="thumb", row=0),
             '.': KeyInfo('.', requires_shift=False, hand="right", finger="ring", row=0),
@@ -305,7 +305,7 @@ class PattajotiLayout(ThaiKeyboardLayout):
             '(': KeyInfo('(', requires_shift=True, hand="right", finger="ring", row=3),
             ')': KeyInfo(')', requires_shift=True, hand="right", finger="pinky", row=3),
         }
-        
+
         self.key_map.update(thai_digits)
         self.key_map.update(intl_digits)
         self.key_map.update(thai_characters)
@@ -313,7 +313,7 @@ class PattajotiLayout(ThaiKeyboardLayout):
 
 def explain_keyboard_rows():
     """Explain the keyboard row system used in cost calculations.
-    
+
     References:
     - TIS 820-2535: Thai Keyboard Layout Standard (Kedmanee)
     - Pattajoti keyboard layout specification
@@ -325,14 +325,14 @@ def explain_keyboard_rows():
     print("Physical keyboard layout (side view):")
     print()
     print("Row 3: [1][2][3][4][5][6][7][8][9][0]  ← Numbers (hardest)")
-    print("Row 2: [Q][W][E][R][T][Y][U][I][O][P]  ← Top row")  
+    print("Row 2: [Q][W][E][R][T][Y][U][I][O][P]  ← Top row")
     print("Row 1: [A][S][D][F][G][H][J][K][L][;]  ← HOME ROW (easiest)")
     print("Row 0: [Z][X][C][V][B][N][M][,][.][/]  ← Bottom row")
     print("       [    SPACE BAR    ]              ← Thumbs")
     print()
     print("Typing difficulty by row:")
     print("  Row 1 (Home): Fingers naturally rest here - FASTEST")
-    print("  Row 2 (Top):  Short upward movement - moderate")  
+    print("  Row 2 (Top):  Short upward movement - moderate")
     print("  Row 0 (Bottom): Short downward movement - moderate")
     print("  Row 3 (Numbers): Long upward stretch - SLOWEST")
     print()
@@ -357,25 +357,25 @@ def compare_layouts(base_keystroke_time: float = 0.28, use_weights: bool = True)
     """Compare keyboard layouts for digit typing costs."""
     kedmanee = KedmaneeLayout()
     pattajoti = PattajotiLayout()
-    
+
     weight_mode = "weighted" if use_weights else "unweighted"
     print(f"KEYBOARD LAYOUT COMPARISON ({weight_mode})")
     print("=" * 60)
-    
-    print(f"\nKedmanee Layout Info:")
+
+    print("\nKedmanee Layout Info:")
     kedmanee_info = kedmanee.get_layout_info()
     for key, value in kedmanee_info.items():
         print(f"  {key}: {value}")
-    
-    print(f"\nPattajoti Layout Info:")
+
+    print("\nPattajoti Layout Info:")
     pattajoti_info = pattajoti.get_layout_info()
     for key, value in pattajoti_info.items():
         print(f"  {key}: {value}")
-    
+
     print(f"\nDIGIT TYPING COSTS ({weight_mode}, base time: {base_keystroke_time}s):")
     print(f"{'Digit':<8} {'Kedmanee':<12} {'Pattajoti':<12} {'Difference':<12}")
     print("-" * 50)
-    
+
     # Compare Thai digits
     thai_digits = ['๐', '๑', '๒', '๓', '๔', '๕', '๖', '๗', '๘', '๙']
     for digit in thai_digits:
@@ -383,9 +383,9 @@ def compare_layouts(base_keystroke_time: float = 0.28, use_weights: bool = True)
         pat_cost = pattajoti.calculate_typing_cost(digit, base_keystroke_time)
         diff = ked_cost - pat_cost
         print(f"{digit:<8} {ked_cost:<12.3f} {pat_cost:<12.3f} {diff:+.3f}")
-    
+
     print()
-    
+
     # Compare international digits
     intl_digits = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
     for digit in intl_digits:

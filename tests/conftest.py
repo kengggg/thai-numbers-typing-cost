@@ -3,12 +3,8 @@ Test configuration and fixtures for Thai Numbers Typing Cost Analysis tests.
 """
 
 import pytest
-import tempfile
-import json
 from pathlib import Path
-from typing import Dict, Any
 import sys
-import os
 
 # Add src directory to path for imports
 test_dir = Path(__file__).parent
@@ -38,7 +34,7 @@ def test_data_dir(project_root_path):
 def sample_thai_text():
     """Sample Thai text with mixed content for testing."""
     return """พระราชบัญญัติรัฐธรรมนูญแห่งราชอาणาจักรไทย พุทธศักราช ๒๕๖๐
-    
+
 เนื่องในมงคลวาร เป็นปีที่ ๒ ในรัชกาลปัจจุบัน
 
 ข้อมูลเพิ่มเติม:
@@ -218,7 +214,7 @@ def sample_json_analysis_data():
             },
             "q2": {
                 "question": "What is the typing cost of international digits on Kedmanee keyboard?",
-                "answer": "15.0 minutes", 
+                "answer": "15.0 minutes",
                 "details": {
                     "time_saved_vs_thai": 0.5,
                     "percentage_saved": 3.2,
@@ -335,11 +331,11 @@ def pytest_collection_modifyitems(config, items):
         # Add unit marker to unit tests
         if "unit" in str(item.fspath):
             item.add_marker(pytest.mark.unit)
-        
+
         # Add integration marker to integration tests
         if "integration" in str(item.fspath):
             item.add_marker(pytest.mark.integration)
-        
+
         # Add validation marker to validation tests
         if "validation" in str(item.fspath):
             item.add_marker(pytest.mark.validation)

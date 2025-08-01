@@ -8,7 +8,7 @@ and flexible rendering to multiple output formats.
 
 import json
 from datetime import datetime
-from typing import Dict, List, Any
+from typing import Dict, Any
 
 import sys
 from pathlib import Path
@@ -28,24 +28,24 @@ def safe_percentage(numerator: float, denominator: float) -> float:
 
 class JSONAnalysisGenerator:
     """Generates comprehensive analysis results in structured JSON format."""
-    
+
     def __init__(self, document_path: str):
         self.document_path = document_path
         self.analyzer = TextAnalyzer(document_path)
         self.generated_at = datetime.now()
-        
+
     def generate_comprehensive_analysis(self, include_all_typists: bool = False) -> Dict[str, Any]:
         """Generate complete analysis data in JSON format."""
-        
+
         # Get document statistics
         stats = self.analyzer.get_statistics()
-        
+
         # Determine typist profiles to analyze
         if include_all_typists:
             profiles = TypistProfile.PROFILES
         else:
             profiles = {'average': TypistProfile.PROFILES['average']}
-        
+
         # Generate the comprehensive JSON structure
         analysis_data = {
             "metadata": self._generate_metadata(stats),
@@ -57,9 +57,9 @@ class JSONAnalysisGenerator:
             "key_findings": self._generate_key_findings(),
             "recommendations": self._generate_recommendations()
         }
-        
+
         return analysis_data
-    
+
     def _generate_metadata(self, stats: Dict) -> Dict[str, Any]:
         """Generate metadata section."""
         return {
@@ -75,14 +75,14 @@ class JSONAnalysisGenerator:
             },
             "analysis_focus": "Direct comparison of Thai digits vs International digits typing costs"
         }
-    
+
     def _generate_document_analysis(self, stats: Dict) -> Dict[str, Any]:
         """Generate document analysis section."""
         thai_breakdown = stats['digit_analysis']['thai_digit_breakdown']
-        
+
         # Sort digits by frequency
         sorted_digits = sorted(thai_breakdown.items(), key=lambda x: x[1], reverse=True)
-        
+
         return {
             "digit_distribution": {
                 "thai_digits": thai_breakdown,
@@ -103,7 +103,7 @@ class JSONAnalysisGenerator:
                 for ctx in stats['contexts'][:5]  # First 5 contexts
             ]
         }
-    
+
     def _generate_typist_profiles(self, profiles: Dict) -> Dict[str, Any]:
         """Generate typist profiles information."""
         return {
@@ -114,15 +114,15 @@ class JSONAnalysisGenerator:
             }
             for profile_key, profile in profiles.items()
         }
-    
+
     def _generate_analysis_results(self, profiles: Dict) -> Dict[str, Any]:
         """Generate detailed analysis results for all profiles."""
         results_by_profile = {}
-        
+
         for profile_key, profile in profiles.items():
             calculator = TypingCostCalculator(self.document_path, profile['keystroke_time'])
             scenarios = calculator.analyze_all_scenarios()
-            
+
             results_by_profile[profile_key] = {
                 "scenarios": {
                     scenario_key: {
@@ -139,9 +139,9 @@ class JSONAnalysisGenerator:
                 "savings_analysis": self._calculate_savings_analysis(scenarios),
                 "optimal_scenario": min(scenarios.keys(), key=lambda k: scenarios[k]['total_cost_minutes'])
             }
-        
+
         return results_by_profile
-    
+
     def _get_scenario_description(self, scenario_key: str) -> str:
         """Get human-readable description for scenario."""
         descriptions = {
@@ -151,35 +151,35 @@ class JSONAnalysisGenerator:
             'intl_pattajoti': 'International digits on Pattajoti keyboard (optimal)'
         }
         return descriptions.get(scenario_key, scenario_key)
-    
+
     def _calculate_savings_analysis(self, scenarios: Dict) -> Dict[str, Any]:
         """Calculate savings compared to current state."""
         baseline = scenarios['thai_kedmanee']
         baseline_minutes = baseline['total_cost_minutes']
-        
+
         savings = {}
         for scenario_key, scenario in scenarios.items():
             if scenario_key == 'thai_kedmanee':
                 continue
-                
+
             time_saved = baseline_minutes - scenario['total_cost_minutes']
             percentage_saved = safe_percentage(time_saved, baseline_minutes)
-            
+
             savings[scenario_key] = {
                 "time_saved_minutes": round(time_saved, 1),
                 "time_saved_hours": round(time_saved / 60, 2),
                 "percentage_saved": round(percentage_saved, 1),
                 "description": self._get_scenario_description(scenario_key)
             }
-        
+
         return savings
-    
+
     def _generate_research_questions(self) -> Dict[str, Any]:
         """Generate research questions and answers."""
         # Use average typist for research questions
         calculator = TypingCostCalculator(self.document_path, 0.28)
         scenarios = calculator.analyze_all_scenarios()
-        
+
         return {
             "q1": {
                 "question": "What is the typing cost of Thai digits on Kedmanee keyboard?",
@@ -227,35 +227,35 @@ class JSONAnalysisGenerator:
                 }
             }
         }
-    
+
     def _generate_impact_projections(self) -> Dict[str, Any]:
         """Generate government impact projections."""
         # Calculate based on optimal savings
         calculator = TypingCostCalculator(self.document_path, 0.28)
         scenarios = calculator.analyze_all_scenarios()
-        
+
         minutes_saved = scenarios['thai_kedmanee']['total_cost_minutes'] - scenarios['intl_pattajoti']['total_cost_minutes']
         hours_saved_per_doc = minutes_saved / 60
-        
+
         scales = [
             {"name": "Small Ministry", "docs_per_day": 50},
             {"name": "Large Ministry", "docs_per_day": 200},
             {"name": "Government-wide", "docs_per_day": 1000},
             {"name": "Full National Scale", "docs_per_day": 5000}
         ]
-        
+
         projections = []
         for scale in scales:
             annual_hours = scale["docs_per_day"] * 250 * hours_saved_per_doc
             annual_savings = annual_hours * 15  # $15/hour
-            
+
             projections.append({
                 "scale": scale["name"],
                 "docs_per_day": scale["docs_per_day"],
                 "annual_hours_saved": round(annual_hours, 0),
                 "annual_cost_savings": round(annual_savings, 0)
             })
-        
+
         return {
             "per_document_savings_minutes": round(minutes_saved, 1),
             "per_document_savings_hours": round(hours_saved_per_doc, 2),
@@ -265,17 +265,17 @@ class JSONAnalysisGenerator:
                 "hourly_labor_cost": 15
             }
         }
-    
+
     def _generate_key_findings(self) -> Dict[str, Any]:
         """Generate key findings summary."""
         calculator = TypingCostCalculator(self.document_path, 0.28)
         scenarios = calculator.analyze_all_scenarios()
-        
+
         current_time = scenarios['thai_kedmanee']['total_cost_minutes']
         optimal_time = scenarios['intl_pattajoti']['total_cost_minutes']
         time_saved = current_time - optimal_time
         efficiency_gain = safe_percentage(time_saved, current_time)
-        
+
         return {
             "current_state": {
                 "description": "Thai digits on Kedmanee keyboard",
@@ -293,7 +293,7 @@ class JSONAnalysisGenerator:
                 "root_cause": "Thai digits require SHIFT key on Kedmanee layout, doubling typing cost"
             }
         }
-    
+
     def _generate_recommendations(self) -> Dict[str, Any]:
         """Generate actionable recommendations."""
         return {
@@ -320,16 +320,16 @@ class JSONAnalysisGenerator:
                 "user_adoption_risk": "Low - requires minimal training"
             }
         }
-    
+
     def save_to_file(self, analysis_data: Dict[str, Any], output_path: str) -> str:
         """Save analysis data to JSON file."""
         Path(output_path).parent.mkdir(parents=True, exist_ok=True)
-        
+
         with open(output_path, 'w', encoding='utf-8') as f:
             json.dump(analysis_data, f, indent=2, ensure_ascii=False)
-        
+
         return output_path
-    
+
     def load_from_file(self, json_path: str) -> Dict[str, Any]:
         """Load analysis data from JSON file."""
         with open(json_path, 'r', encoding='utf-8') as f:
@@ -339,18 +339,18 @@ class JSONAnalysisGenerator:
 def main():
     """Main function for standalone execution."""
     import sys
-    
+
     if len(sys.argv) < 2:
         print("Usage: python json_analysis_generator.py <document_path> [output_json_path]")
         sys.exit(1)
-    
+
     document_path = sys.argv[1]
     output_path = sys.argv[2] if len(sys.argv) > 2 else "analysis_results.json"
-    
+
     generator = JSONAnalysisGenerator(document_path)
     analysis_data = generator.generate_comprehensive_analysis(include_all_typists=True)
     saved_path = generator.save_to_file(analysis_data, output_path)
-    
+
     print(f"Analysis completed and saved to: {saved_path}")
     print(f"Generated at: {analysis_data['metadata']['generated_at']}")
     print(f"Key finding: {analysis_data['key_findings']['improvement']['time_saved_minutes']} minutes saved per document")

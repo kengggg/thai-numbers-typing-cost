@@ -13,7 +13,7 @@ import sys
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
-from models.keyboard_layouts import KedmaneeLayout, PattajotiLayout, KeyboardType
+# Keyboard layout classes accessed through fixtures in conftest.py
 
 
 class TestKeyboardLayoutAccuracy:
@@ -46,7 +46,7 @@ class TestKeyboardLayoutAccuracy:
                     f"Got {actual_hand} {actual_finger}"
                 )
 
-        assert not validation_errors, f"Finger assignment validation failed:\n" + "\n".join(validation_errors)
+        assert not validation_errors, "Finger assignment validation failed:\n" + "\n".join(validation_errors)
 
     def test_kedmanee_thai_digits_require_shift(self, kedmanee_layout, thai_digits):
         """Validate that all Thai digits require SHIFT on Kedmanee layout."""
@@ -64,7 +64,7 @@ class TestKeyboardLayoutAccuracy:
             if key_info.row != 3:
                 validation_errors.append(f"Thai digit {digit} should be on row 3, but is on row {key_info.row}")
 
-        assert not validation_errors, f"Thai digit SHIFT validation failed:\n" + "\n".join(validation_errors)
+        assert not validation_errors, "Thai digit SHIFT validation failed:\n" + "\n".join(validation_errors)
 
     def test_kedmanee_international_digits_no_shift(self, kedmanee_layout, international_digits):
         """Validate that international digits don't require SHIFT on Kedmanee layout."""
@@ -82,7 +82,7 @@ class TestKeyboardLayoutAccuracy:
             if key_info.row != 3:
                 validation_errors.append(f"International digit {digit} should be on row 3, but is on row {key_info.row}")
 
-        assert not validation_errors, f"International digit SHIFT validation failed:\n" + "\n".join(validation_errors)
+        assert not validation_errors, "International digit SHIFT validation failed:\n" + "\n".join(validation_errors)
 
     def test_pattajoti_thai_digits_no_shift(self, pattajoti_layout, thai_digits):
         """Validate that Thai digits don't require SHIFT on Pattajoti layout."""
@@ -100,16 +100,16 @@ class TestKeyboardLayoutAccuracy:
             if key_info.row != 3:
                 validation_errors.append(f"Thai digit {digit} should be on row 3, but is on row {key_info.row}")
 
-        assert not validation_errors, f"Pattajoti Thai digit validation failed:\n" + "\n".join(validation_errors)
+        assert not validation_errors, "Pattajoti Thai digit validation failed:\n" + "\n".join(validation_errors)
 
     def test_pattajoti_digit_order_accuracy(self, pattajoti_layout):
         """Validate that Pattajoti Thai digits follow the correct left-to-right order."""
         # Expected order from left to right: ๒๓๔๕๗๘๙๐๑๖
         expected_order = ['๒', '๓', '๔', '๕', '๗', '๘', '๙', '๐', '๑', '๖']
         expected_fingers = ['pinky', 'ring', 'middle', 'index', 'index',
-                           'index', 'index', 'middle', 'ring', 'pinky']
+                            'index', 'index', 'middle', 'ring', 'pinky']
         expected_hands = ['left', 'left', 'left', 'left', 'left',
-                         'right', 'right', 'right', 'right', 'right']
+                          'right', 'right', 'right', 'right', 'right']
 
         validation_errors = []
         found_digits = []
@@ -142,7 +142,7 @@ class TestKeyboardLayoutAccuracy:
                 f"Found: {''.join(found_digits)}"
             )
 
-        assert not validation_errors, f"Pattajoti digit order validation failed:\n" + "\n".join(validation_errors)
+        assert not validation_errors, "Pattajoti digit order validation failed:\n" + "\n".join(validation_errors)
 
 
 class TestLayoutCompleteness:
@@ -244,7 +244,7 @@ class TestLayoutConsistency:
 
             # Finger assignments should be consistent for international digits
             if (kedmanee_info.hand != pattajoti_info.hand or
-                kedmanee_info.finger != pattajoti_info.finger):
+                    kedmanee_info.finger != pattajoti_info.finger):
                 inconsistencies.append(
                     f"Digit {digit}: Kedmanee({kedmanee_info.hand} {kedmanee_info.finger}) "
                     f"vs Pattajoti({pattajoti_info.hand} {pattajoti_info.finger})"
@@ -257,7 +257,7 @@ class TestLayoutConsistency:
                     f"Kedmanee({kedmanee_info.requires_shift}) vs Pattajoti({pattajoti_info.requires_shift})"
                 )
 
-        assert not inconsistencies, f"International digit inconsistencies:\n" + "\n".join(inconsistencies)
+        assert not inconsistencies, "International digit inconsistencies:\n" + "\n".join(inconsistencies)
 
     def test_row_assignments_validity(self, kedmanee_layout, pattajoti_layout):
         """Validate that row assignments are within valid range."""
