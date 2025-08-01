@@ -5,8 +5,9 @@ Calculates the actual typing cost for the Thai constitution under different scen
 """
 
 from typing import Dict
-from models.text_analyzer import TextAnalyzer
+
 from models.keyboard_layouts import KedmaneeLayout, PattajotiLayout
+from models.text_analyzer import TextAnalyzer
 
 
 class TypingCostCalculator:
@@ -21,8 +22,16 @@ class TypingCostCalculator:
 
         # Create digit mapping for conversion scenarios
         self.thai_to_intl_map = {
-            '๐': '0', '๑': '1', '๒': '2', '๓': '3', '๔': '4',
-            '๕': '5', '๖': '6', '๗': '7', '๘': '8', '๙': '9'
+            "๐": "0",
+            "๑": "1",
+            "๒": "2",
+            "๓": "3",
+            "๔": "4",
+            "๕": "5",
+            "๖": "6",
+            "๗": "7",
+            "๘": "8",
+            "๙": "9",
         }
         self.intl_to_thai_map = {v: k for k, v in self.thai_to_intl_map.items()}
 
@@ -38,7 +47,9 @@ class TypingCostCalculator:
                 text = text.replace(thai, intl)
         return text
 
-    def calculate_document_cost(self, keyboard_layout, digit_conversion: str = "none") -> Dict:
+    def calculate_document_cost(
+        self, keyboard_layout, digit_conversion: str = "none"
+    ) -> Dict:
         """Calculate typing cost for the entire document."""
         text = self.analyzer.text
 
@@ -59,28 +70,28 @@ class TypingCostCalculator:
 
             # Track character-specific costs
             if char not in character_costs:
-                character_costs[char] = {'count': 0, 'total_cost': 0.0}
-            character_costs[char]['count'] += 1
-            character_costs[char]['total_cost'] += cost
+                character_costs[char] = {"count": 0, "total_cost": 0.0}
+            character_costs[char]["count"] += 1
+            character_costs[char]["total_cost"] += cost
 
             # Track digit costs specifically
             if char.isdigit() or char in self.thai_to_intl_map:
                 if char not in digit_costs:
-                    digit_costs[char] = {'count': 0, 'total_cost': 0.0}
-                digit_costs[char]['count'] += 1
-                digit_costs[char]['total_cost'] += cost
+                    digit_costs[char] = {"count": 0, "total_cost": 0.0}
+                digit_costs[char]["count"] += 1
+                digit_costs[char]["total_cost"] += cost
 
         return {
-            'total_cost_seconds': total_cost,
-            'total_cost_minutes': total_cost / 60,
-            'total_cost_hours': total_cost / 3600,
-            'total_characters': len(text),
-            'average_cost_per_char': total_cost / len(text) if len(text) > 0 else 0,
-            'character_costs': character_costs,
-            'digit_costs': digit_costs,
-            'keyboard_layout': keyboard_layout.layout_type.value,
-            'conversion_applied': digit_conversion,
-            'base_keystroke_time': self.base_keystroke_time
+            "total_cost_seconds": total_cost,
+            "total_cost_minutes": total_cost / 60,
+            "total_cost_hours": total_cost / 3600,
+            "total_characters": len(text),
+            "average_cost_per_char": total_cost / len(text) if len(text) > 0 else 0,
+            "character_costs": character_costs,
+            "digit_costs": digit_costs,
+            "keyboard_layout": keyboard_layout.layout_type.value,
+            "conversion_applied": digit_conversion,
+            "base_keystroke_time": self.base_keystroke_time,
         }
 
     def analyze_all_scenarios(self) -> Dict:
@@ -91,25 +102,25 @@ class TypingCostCalculator:
 
         # Scenario 1: Thai digits on Kedmanee (current state)
         print("  Scenario 1: Thai digits on Kedmanee...")
-        scenarios['thai_kedmanee'] = self.calculate_document_cost(
+        scenarios["thai_kedmanee"] = self.calculate_document_cost(
             self.kedmanee, "none"  # Text already has Thai digits
         )
 
         # Scenario 2: International digits on Kedmanee
         print("  Scenario 2: International digits on Kedmanee...")
-        scenarios['intl_kedmanee'] = self.calculate_document_cost(
+        scenarios["intl_kedmanee"] = self.calculate_document_cost(
             self.kedmanee, "to_international"
         )
 
         # Scenario 3: Thai digits on Pattajoti
         print("  Scenario 3: Thai digits on Pattajoti...")
-        scenarios['thai_pattajoti'] = self.calculate_document_cost(
+        scenarios["thai_pattajoti"] = self.calculate_document_cost(
             self.pattajoti, "none"  # Text already has Thai digits
         )
 
         # Scenario 4: International digits on Pattajoti
         print("  Scenario 4: International digits on Pattajoti...")
-        scenarios['intl_pattajoti'] = self.calculate_document_cost(
+        scenarios["intl_pattajoti"] = self.calculate_document_cost(
             self.pattajoti, "to_international"
         )
 
@@ -117,28 +128,41 @@ class TypingCostCalculator:
 
     def calculate_savings_analysis(self, scenarios: Dict) -> Dict:
         """Calculate time savings between different scenarios."""
-        base_scenario = scenarios['thai_kedmanee']  # Current state (baseline)
+        base_scenario = scenarios["thai_kedmanee"]  # Current state (baseline)
 
         savings = {}
 
         for scenario_name, scenario_data in scenarios.items():
-            if scenario_name == 'thai_kedmanee':
+            if scenario_name == "thai_kedmanee":
                 continue
 
-            time_saved_seconds = base_scenario['total_cost_seconds'] - scenario_data['total_cost_seconds']
+            time_saved_seconds = (
+                base_scenario["total_cost_seconds"]
+                - scenario_data["total_cost_seconds"]
+            )
             time_saved_minutes = time_saved_seconds / 60
             time_saved_hours = time_saved_seconds / 3600
 
-            percentage_saved = (time_saved_seconds / base_scenario['total_cost_seconds']) * 100 if base_scenario['total_cost_seconds'] > 0 else 0.0
+            percentage_saved = (
+                (time_saved_seconds / base_scenario["total_cost_seconds"]) * 100
+                if base_scenario["total_cost_seconds"] > 0
+                else 0.0
+            )
 
             savings[scenario_name] = {
-                'time_saved_seconds': time_saved_seconds,
-                'time_saved_minutes': time_saved_minutes,
-                'time_saved_hours': time_saved_hours,
-                'percentage_saved': percentage_saved,
-                'cost_per_digit': scenario_data['total_cost_seconds'] / sum(
-                    data['count'] for char, data in scenario_data['digit_costs'].items()
-                ) if scenario_data['digit_costs'] else 0
+                "time_saved_seconds": time_saved_seconds,
+                "time_saved_minutes": time_saved_minutes,
+                "time_saved_hours": time_saved_hours,
+                "percentage_saved": percentage_saved,
+                "cost_per_digit": (
+                    scenario_data["total_cost_seconds"]
+                    / sum(
+                        data["count"]
+                        for char, data in scenario_data["digit_costs"].items()
+                    )
+                    if scenario_data["digit_costs"]
+                    else 0
+                ),
             }
 
         return savings
@@ -147,7 +171,9 @@ class TypingCostCalculator:
         """Print a comprehensive analysis report."""
         print("=" * 80)
         print("THAI CONSTITUTION TYPING COST ANALYSIS")
-        print(f"Base keystroke time: {self.base_keystroke_time}s per keystroke + SHIFT penalty")
+        print(
+            f"Base keystroke time: {self.base_keystroke_time}s per keystroke + SHIFT penalty"
+        )
         print("=" * 80)
 
         # Get basic document stats
@@ -161,21 +187,23 @@ class TypingCostCalculator:
         scenarios = self.analyze_all_scenarios()
 
         print("\nTYPING COST BY SCENARIO:")
-        print(f"{'Scenario':<25} {'Time (min)':<12} {'Time (hrs)':<12} {'Avg/char (ms)':<15}")
+        print(
+            f"{'Scenario':<25} {'Time (min)':<12} {'Time (hrs)':<12} {'Avg/char (ms)':<15}"
+        )
         print("-" * 70)
 
         scenario_names = {
-            'thai_kedmanee': 'Thai + Kedmanee',
-            'intl_kedmanee': 'International + Kedmanee',
-            'thai_pattajoti': 'Thai + Pattajoti',
-            'intl_pattajoti': 'International + Pattajoti'
+            "thai_kedmanee": "Thai + Kedmanee",
+            "intl_kedmanee": "International + Kedmanee",
+            "thai_pattajoti": "Thai + Pattajoti",
+            "intl_pattajoti": "International + Pattajoti",
         }
 
         for key, scenario in scenarios.items():
             name = scenario_names[key]
-            minutes = scenario['total_cost_minutes']
-            hours = scenario['total_cost_hours']
-            avg_ms = scenario['average_cost_per_char'] * 1000
+            minutes = scenario["total_cost_minutes"]
+            hours = scenario["total_cost_hours"]
+            avg_ms = scenario["average_cost_per_char"] * 1000
 
             print(f"{name:<25} {minutes:<12.1f} {hours:<12.2f} {avg_ms:<15.1f}")
 
@@ -183,29 +211,39 @@ class TypingCostCalculator:
         savings = self.calculate_savings_analysis(scenarios)
 
         print("\nTIME SAVINGS COMPARED TO CURRENT STATE (Thai + Kedmanee):")
-        print(f"{'Alternative Scenario':<25} {'Saved (min)':<12} {'Saved (%)':<12} {'Cost/digit (ms)':<15}")
+        print(
+            f"{'Alternative Scenario':<25} {'Saved (min)':<12} {'Saved (%)':<12} {'Cost/digit (ms)':<15}"
+        )
         print("-" * 70)
 
         for key, saving in savings.items():
             name = scenario_names[key]
-            saved_min = saving['time_saved_minutes']
-            saved_pct = saving['percentage_saved']
-            cost_per_digit_ms = saving['cost_per_digit'] * 1000
+            saved_min = saving["time_saved_minutes"]
+            saved_pct = saving["percentage_saved"]
+            cost_per_digit_ms = saving["cost_per_digit"] * 1000
 
-            print(f"{name:<25} {saved_min:<12.1f} {saved_pct:<12.1f} {cost_per_digit_ms:<15.1f}")
+            print(
+                f"{name:<25} {saved_min:<12.1f} {saved_pct:<12.1f} {cost_per_digit_ms:<15.1f}"
+            )
 
         # Detailed digit analysis
         print("\nDIGIT-SPECIFIC COST ANALYSIS:")
-        base_scenario = scenarios['thai_kedmanee']
+        base_scenario = scenarios["thai_kedmanee"]
 
         print("\nCurrent document uses Thai digits with these costs:")
-        for digit, data in sorted(base_scenario['digit_costs'].items()):
-            cost_per_digit = data['total_cost'] / data['count'] if data['count'] > 0 else 0.0
-            total_cost_seconds = data['total_cost']
-            print(f"  {digit}: {data['count']:,} occurrences, {cost_per_digit*1000:.1f}ms each, {total_cost_seconds:.1f}s total")
+        for digit, data in sorted(base_scenario["digit_costs"].items()):
+            cost_per_digit = (
+                data["total_cost"] / data["count"] if data["count"] > 0 else 0.0
+            )
+            total_cost_seconds = data["total_cost"]
+            print(
+                f"  {digit}: {data['count']:,} occurrences, {cost_per_digit*1000:.1f}ms each, {total_cost_seconds:.1f}s total"
+            )
 
         # Calculate theoretical best case
-        best_scenario_key = min(scenarios.keys(), key=lambda k: scenarios[k]['total_cost_seconds'])
+        best_scenario_key = min(
+            scenarios.keys(), key=lambda k: scenarios[k]["total_cost_seconds"]
+        )
         best_scenario = scenarios[best_scenario_key]
 
         print("\nOPTIMAL SCENARIO ANALYSIS:")
@@ -213,19 +251,23 @@ class TypingCostCalculator:
         print(f"  Total time: {best_scenario['total_cost_minutes']:.1f} minutes")
 
         # Handle case where best scenario is the baseline (current state)
-        if best_scenario_key == 'thai_kedmanee':
+        if best_scenario_key == "thai_kedmanee":
             print("  Time saved vs current: 0.0 minutes")
             print("  Efficiency gain: 0.0%")
         else:
-            print(f"  Time saved vs current: {savings[best_scenario_key]['time_saved_minutes']:.1f} minutes")
-            print(f"  Efficiency gain: {savings[best_scenario_key]['percentage_saved']:.1f}%")
+            print(
+                f"  Time saved vs current: {savings[best_scenario_key]['time_saved_minutes']:.1f} minutes"
+            )
+            print(
+                f"  Efficiency gain: {savings[best_scenario_key]['percentage_saved']:.1f}%"
+            )
 
         return scenarios, savings
 
 
 if __name__ == "__main__":
-    import sys
     import os
+    import sys
     from pathlib import Path
 
     # Add src directory to path for imports
@@ -233,7 +275,9 @@ if __name__ == "__main__":
     sys.path.insert(0, str(src_dir))
 
     if len(sys.argv) < 2:
-        print("Usage: python typing_cost_calculator.py <document_path> [base_keystroke_time]")
+        print(
+            "Usage: python typing_cost_calculator.py <document_path> [base_keystroke_time]"
+        )
         print("Example: python typing_cost_calculator.py ../data/thai-con.txt 0.28")
         sys.exit(1)
 
@@ -258,8 +302,8 @@ if __name__ == "__main__":
 
 def main():
     """Main function for standalone execution - wrapper for if __name__ == '__main__' block."""
-    import sys
     import os
+    import sys
     from pathlib import Path
 
     # Add src directory to path for imports
@@ -267,7 +311,9 @@ def main():
     sys.path.insert(0, str(src_dir))
 
     if len(sys.argv) < 2:
-        print("Usage: python typing_cost_calculator.py <document_path> [base_keystroke_time]")
+        print(
+            "Usage: python typing_cost_calculator.py <document_path> [base_keystroke_time]"
+        )
         print("Example: python typing_cost_calculator.py ../data/thai-con.txt 0.28")
         sys.exit(1)
 

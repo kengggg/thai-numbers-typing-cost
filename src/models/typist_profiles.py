@@ -6,33 +6,33 @@ Defines different typist skill levels with associated keystroke times
 and characteristics for typing cost calculations.
 """
 
-from typing import Dict, Any
+from typing import Any, Dict
 
 
 class TypistProfile:
     """Represents different typist skill levels with associated keystroke times."""
 
     PROFILES = {
-        'expert': {
-            'name': 'Expert Typist (90 WPM)',
-            'keystroke_time': 0.12,
-            'description': 'Professional typist, ~90 WPM, touch typing mastery'
+        "expert": {
+            "name": "Expert Typist (90 WPM)",
+            "keystroke_time": 0.12,
+            "description": "Professional typist, ~90 WPM, touch typing mastery",
         },
-        'skilled': {
-            'name': 'Skilled Typist',
-            'keystroke_time': 0.20,
-            'description': 'Experienced office worker, good typing skills'
+        "skilled": {
+            "name": "Skilled Typist",
+            "keystroke_time": 0.20,
+            "description": "Experienced office worker, good typing skills",
         },
-        'average': {
-            'name': 'Average Non-secretarial',
-            'keystroke_time': 0.28,
-            'description': 'Average office worker, moderate typing skills (default)'
+        "average": {
+            "name": "Average Non-secretarial",
+            "keystroke_time": 0.28,
+            "description": "Average office worker, moderate typing skills (default)",
         },
-        'worst': {
-            'name': 'Worst Typist',
-            'keystroke_time': 1.2,
-            'description': 'Hunt-and-peck typist, very slow typing'
-        }
+        "worst": {
+            "name": "Worst Typist",
+            "keystroke_time": 1.2,
+            "description": "Hunt-and-peck typist, very slow typing",
+        },
     }
 
     @classmethod
@@ -48,7 +48,9 @@ class TypistProfile:
         print("Available Typist Profiles:")
         print("-" * 50)
         for key, profile in cls.PROFILES.items():
-            print(f"  {key:<8}: {profile['name']} ({profile['keystroke_time']}s per keystroke)")
+            print(
+                f"  {key:<8}: {profile['name']} ({profile['keystroke_time']}s per keystroke)"
+            )
             print(f"           {profile['description']}")
             print()
 
