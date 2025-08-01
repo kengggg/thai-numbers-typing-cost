@@ -376,7 +376,10 @@ def main():
         output_file = sys.argv[2]
     else:
         timestamp = analysis_data['metadata']['generated_at'].replace(':', '').replace('-', '').replace('T', '_').split('.')[0]
-        output_file = f"analysis_report_{timestamp}.md"
+        # Always generate reports in proper output directory, not current working directory
+        import os
+        output_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), '..', 'output')
+        output_file = os.path.join(output_dir, f"analysis_report_{timestamp}.md")
     
     # Render to markdown
     saved_path = render_json_to_markdown(analysis_data, output_file)
