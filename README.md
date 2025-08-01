@@ -27,7 +27,7 @@ thai-numbers-typing-cost/
 │   ├── integration/              # End-to-end workflow tests
 │   ├── validation/               # Keyboard layout accuracy validation
 │   └── conftest.py               # Test fixtures and configuration
-├── output/                       # Generated analysis files
+├── output/                       # Generated analysis files (default output directory)
 │   ├── analysis.json            # Comprehensive analysis data
 │   └── comparison_report_*.md   # Timestamped comparison tables
 ├── data/                         # Input documents and reference materials
@@ -61,8 +61,11 @@ The tool automatically analyzes all scenarios and generates both JSON data and c
 ```bash
 cd src
 
-# Analyze document - automatically generates all comparisons
+# Analyze document - automatically generates all comparisons (default output: ../output/)
 python main.py ../data/thai-con.txt
+
+# Specify custom output directory
+python main.py ../data/thai-con.txt --output ../results
 
 # Show available typist profiles
 python main.py --list-typists
@@ -71,15 +74,17 @@ python main.py --list-typists
 **That's it!** The tool automatically:
 - Analyzes all 4 typist profiles (expert, skilled, average, worst)
 - Compares all 4 scenarios (Thai/Intl digits × Kedmanee/Pattajoti keyboards)
-- Generates comprehensive JSON data (`output/analysis.json`)
-- Creates comparison table markdown report (`output/comparison_report_TIMESTAMP.md`)
+- Generates comprehensive JSON data (e.g., `output/analysis.json`)
+- Creates comparison table markdown report (e.g., `output/comparison_report_TIMESTAMP.md`)
 
 ### Output Files
 
-Every analysis run creates timestamped files:
+Every analysis run creates timestamped files in the output directory (default: `output/`):
 
-- **JSON**: `output/analysis.json` (comprehensive analysis data)
-- **Markdown**: `output/comparison_report_YYYYMMDD_HHMMSS.md` (e.g., `comparison_report_20250801_120606.md`)
+- **JSON**: `analysis.json` (comprehensive analysis data)
+- **Markdown**: `comparison_report_YYYYMMDD_HHMMSS.md` (e.g., `comparison_report_20250801_120606.md`)
+
+Use `--output` to specify a custom output directory for all generated files.
 
 The markdown report contains simple comparison tables showing typing times for all scenarios:
 

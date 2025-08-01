@@ -48,8 +48,11 @@ This is a focused comparison tool that automatically generates typing time compa
 ```bash
 cd src
 
-# Main usage - automatically analyzes all scenarios and generates all outputs
+# Main usage - automatically analyzes all scenarios and generates all outputs (default: ../output/)
 python main.py ../data/thai-con.txt
+
+# Specify custom output directory
+python main.py ../data/thai-con.txt --output ../results
 
 # Utility command - show available typist profiles
 python main.py --list-typists
@@ -58,13 +61,13 @@ python main.py --list-typists
 **That's it!** The tool automatically:
 - Analyzes all 4 typist profiles (expert, skilled, average, worst)
 - Compares all 4 scenarios (Thai/Intl digits × Kedmanee/Pattajoti keyboards)
-- Generates comprehensive JSON data (`output/analysis.json`)
-- Creates comparison table markdown (`output/comparison_report_TIMESTAMP.md`)
+- Generates comprehensive JSON data (e.g., `output/analysis.json`)
+- Creates comparison table markdown (e.g., `output/comparison_report_TIMESTAMP.md`)
 
-### Testing and Development (250 Tests)
+### Testing and Development (204 Tests)
 ```bash
 # Run full test suite
-pytest                                   # All 250 tests
+pytest                                   # All 204 tests
 
 # Code quality checks
 tox -e format                            # Check formatting (black + isort)
@@ -88,9 +91,11 @@ Four skill levels defined in `src/models/typist_profiles.py`:
 - **average**: 0.28s per keystroke (typical office worker - default)
 - **worst**: 1.2s per keystroke (hunt-and-peck typist)
 
-### Output Files
-- **JSON**: `output/analysis.json` (comprehensive analysis data)
-- **Markdown**: `output/comparison_report_YYYYMMDD_HHMMSS.md` (timestamped comparison tables)
+### Output Files (Clean Separation)
+- **Default location**: `output/` directory (project root, never inside src)
+- **JSON**: `analysis.json` (comprehensive analysis data)
+- **Markdown**: `comparison_report_YYYYMMDD_HHMMSS.md` (timestamped comparison tables)
+- **Custom location**: Use `--output /custom/path` to specify different directory
 
 ### Simple Comparison Table Format
 The markdown output shows raw timing data in clean tables:
@@ -106,9 +111,9 @@ The markdown output shows raw timing data in clean tables:
 ## Development Notes
 
 ### Testing
-- **250 tests** covering all components with 100% pass rate
+- **204 tests** covering all components with 100% pass rate
 - **Validation tests** ensure keyboard layouts match official standards
-- **Integration tests** verify simplified CLI workflow
+- **Integration tests** verify simplified CLI workflow and proper output directory separation
 
 ### Code Quality Requirements
 - **Standard library only** (no external dependencies for core functionality)
@@ -117,10 +122,15 @@ The markdown output shows raw timing data in clean tables:
 - **UTF-8 encoding** essential for Thai character processing
 
 ### Making Changes
-1. **Run tests first**: `pytest` (ensure all 250 tests pass)
+1. **Run tests first**: `pytest` (ensure all 204 tests pass)
 2. **Make changes**: Follow existing patterns and conventions
 3. **Validate changes**: `pytest tests/validation/ -v` for keyboard modifications
 4. **Check code quality**: `tox -e format && tox -e lint`
 5. **Update docs**: README.md and CLAUDE.md if user-facing changes
+
+### Critical Architecture Rules
+- **Never mix source and output**: Output files go in project root `output/` directory, never inside `src/`
+- **Always use absolute paths**: Use `--output` argument to control output location with absolute paths
+- **Maintain separation of concerns**: Source code in `src/`, generated files outside `src/`
 
 This is a focused, reliable comparison tool designed for simplicity and automatic comprehensive analysis.

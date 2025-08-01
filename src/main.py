@@ -156,12 +156,20 @@ Examples:
   # Analyze document and generate all comparisons
   python main.py ../data/thai-con.txt
 
+  # Specify custom output directory
+  python main.py ../data/thai-con.txt --output ../results
+
   # Show available typist profiles
   python main.py --list-typists
         """,
     )
 
     parser.add_argument("document", nargs="?", help="Path to Thai document to analyze")
+    parser.add_argument(
+        "--output",
+        default=None,
+        help="Output directory for analysis files (default: project root/output)",
+    )
     parser.add_argument(
         "--list-typists",
         action="store_true",
@@ -184,8 +192,14 @@ Examples:
         print(f"Error: Document not found at {args.document}")
         sys.exit(1)
 
-    # Create output directory
-    output_dir = "output"
+    # Determine output directory (always absolute path, never inside src)
+    if args.output:
+        output_dir = os.path.abspath(args.output)
+    else:
+        # Default: project root/output (parent of src directory)
+        project_root = Path(__file__).parent.parent
+        output_dir = str(project_root / "output")
+    
     create_output_directories(output_dir)
 
     print("=" * 80)
