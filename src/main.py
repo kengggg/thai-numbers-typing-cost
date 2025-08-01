@@ -17,8 +17,12 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 from calculators.typing_cost_calculator import TypingCostCalculator
 from generators.json_analysis_generator import JSONAnalysisGenerator
-from models.keyboard_layouts import (KedmaneeLayout, PattajotiLayout,
-                                     compare_layouts, explain_keyboard_rows)
+from models.keyboard_layouts import (
+    KedmaneeLayout,
+    PattajotiLayout,
+    compare_layouts,
+    explain_keyboard_rows,
+)
 from models.text_analyzer import TextAnalyzer
 from models.typist_profiles import TypistProfile
 from renderers.console_renderer import render_json_to_console

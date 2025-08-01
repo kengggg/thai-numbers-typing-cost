@@ -16,8 +16,7 @@ import pytest
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
 from renderers.console_renderer import ConsoleRenderer, render_json_to_console
-from renderers.markdown_renderer import (MarkdownRenderer,
-                                         render_json_to_markdown)
+from renderers.markdown_renderer import MarkdownRenderer, render_json_to_markdown
 
 
 class TestMarkdownRenderer:

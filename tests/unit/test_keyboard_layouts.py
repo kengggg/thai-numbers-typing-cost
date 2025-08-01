@@ -13,8 +13,13 @@ import pytest
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent / "src"))
 
-from models.keyboard_layouts import (KeyboardType, KeyInfo, ThaiKeyboardLayout,
-                                     compare_layouts, explain_keyboard_rows)
+from models.keyboard_layouts import (
+    KeyboardType,
+    KeyInfo,
+    ThaiKeyboardLayout,
+    compare_layouts,
+    explain_keyboard_rows,
+)
 
 
 class TestKeyboardType:
