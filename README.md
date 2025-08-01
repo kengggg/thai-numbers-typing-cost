@@ -37,7 +37,8 @@ thai-numbers-typing-cost/
 │   └── Pattajoti.gif            # Official Pattajoti layout reference
 ├── pytest.ini                   # Test configuration
 ├── tox.ini                       # Multi-environment testing and code quality
-├── requirements-test.txt         # Development dependencies
+├── requirements.txt              # Production dependencies (minimal - standard library only)
+├── requirements-test.txt         # Development and testing dependencies
 └── PRD.txt                       # Project requirements document
 ```
 

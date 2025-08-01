@@ -1,0 +1,13 @@
+# Thai Numbers Typing Cost Analysis - Production Dependencies
+# 
+# This project is designed to use only Python standard library for core functionality
+# to ensure maximum compatibility and minimal dependency management complexity.
+#
+# Core functionality requires no external dependencies.
+# All analysis, calculation, and rendering features work with standard library only.
+
+# Optional: JSON schema validation (only if needed for advanced validation)
+# jsonschema>=4.0.0
+
+# Note: For development and testing, install requirements-test.txt instead:
+# pip install -r requirements-test.txt
