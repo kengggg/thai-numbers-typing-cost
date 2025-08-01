@@ -26,7 +26,6 @@ def create_output_directories(base_output_dir: str) -> None:
     Path(base_output_dir).mkdir(parents=True, exist_ok=True)
 
 
-
 def generate_json_and_render(args: argparse.Namespace) -> None:
     """Generate JSON analysis and render to requested format."""
     print("\n" + "=" * 80)

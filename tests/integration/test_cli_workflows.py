@@ -583,7 +583,7 @@ class TestErrorHandling:
         try:
             # Should handle permission errors gracefully without crashing
             main()
-            
+
             # Check that error was handled gracefully
             captured = capsys.readouterr()
             assert "JSON analysis failed" in captured.out
