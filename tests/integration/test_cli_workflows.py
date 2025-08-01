@@ -138,8 +138,8 @@ class TestBasicCLIWorkflows:
         # Should analyze for all typist profiles (verified internally by JSON generator)
         # The --compare-all flag enables comprehensive analysis across all skill levels
         # Individual profile names don't appear in console output but are included in analysis
-        
-        # Should create output directories  
+
+        # Should create output directories
         reports_dir = tmp_path / "reports"
         analysis_dir = tmp_path / "analysis"
         assert reports_dir.exists()

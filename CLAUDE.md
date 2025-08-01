@@ -86,6 +86,11 @@ pytest --cov=src --cov-report=term-missing
 
 # Multi-environment testing (simplified)
 tox                                       # Test Python 3.9, 3.11, 3.12
+
+# Code quality (minimal set)
+tox -e format                             # Check code formatting (black + isort)
+tox -e format-fix                         # Auto-fix code formatting
+tox -e lint                               # Basic code linting (flake8)
 ```
 
 ## Critical Implementation Details

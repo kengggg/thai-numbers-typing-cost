@@ -133,6 +133,11 @@ python -m pytest --cov=src --cov-report=term-missing
 ```bash
 # Multi-environment testing with tox
 tox                          # Test across Python 3.9, 3.11, 3.12
+
+# Code quality (minimal set)
+tox -e format                # Check code formatting (black + isort)
+tox -e format-fix            # Auto-fix code formatting  
+tox -e lint                  # Basic code linting (flake8)
 ```
 
 ## Key Research Findings

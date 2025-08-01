@@ -10,20 +10,12 @@ import argparse
 import os
 import sys
 from pathlib import Path
-from typing import Dict
 
 # Add the src directory to Python path for imports
 sys.path.insert(0, str(Path(__file__).parent))
 
 from calculators.typing_cost_calculator import TypingCostCalculator
 from generators.json_analysis_generator import JSONAnalysisGenerator
-from models.keyboard_layouts import (
-    KedmaneeLayout,
-    PattajotiLayout,
-    compare_layouts,
-    explain_keyboard_rows,
-)
-from models.text_analyzer import TextAnalyzer
 from models.typist_profiles import TypistProfile
 from renderers.console_renderer import render_json_to_console
 from renderers.markdown_renderer import render_json_to_markdown
@@ -34,12 +26,6 @@ def create_output_directories(base_output_dir: str) -> None:
     Path(base_output_dir).mkdir(parents=True, exist_ok=True)
     Path(f"{base_output_dir}/reports").mkdir(parents=True, exist_ok=True)
     Path(f"{base_output_dir}/analysis").mkdir(parents=True, exist_ok=True)
-
-
-
-
-
-
 
 
 def run_comparative_analysis(document_path: str, output_dir: str) -> None:
@@ -233,8 +219,6 @@ def render_from_existing_json(args: argparse.Namespace) -> None:
         sys.exit(1)
 
 
-
-
 def main() -> None:
     """Main CLI application."""
     parser = argparse.ArgumentParser(
@@ -290,8 +274,6 @@ Examples:
         help="List available typist profiles and exit",
     )
 
-
-
     # JSON-first output options
     parser.add_argument(
         "--output-json", metavar="JSON_FILE", help="Save analysis results as JSON file"
@@ -309,7 +291,6 @@ Examples:
         default="console",
         help="Output format (default: console)",
     )
-
 
     args = parser.parse_args()
 
