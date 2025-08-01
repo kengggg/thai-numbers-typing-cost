@@ -7,6 +7,7 @@ Tests end-to-end functionality including command-line interface,
 file operations, and complete analysis pipelines.
 """
 
+import os
 import sys
 from pathlib import Path
 
@@ -25,119 +26,70 @@ class TestBasicCLIWorkflows:
         self, sample_thai_text_file, tmp_path, monkeypatch, capsys
     ):
         """Test basic CLI analysis workflow."""
-        # Mock sys.argv for basic analysis
-        test_args = ["main.py", sample_thai_text_file, "--output", str(tmp_path)]
-        monkeypatch.setattr("sys.argv", test_args)
+        # Change to tmp directory so output goes there
+        original_cwd = os.getcwd()
+        os.chdir(tmp_path)
 
-        # Run main function
-        main()
+        try:
+            # Mock sys.argv for basic analysis
+            test_args = ["main.py", sample_thai_text_file]
+            monkeypatch.setattr("sys.argv", test_args)
 
-        # Check console output
-        captured = capsys.readouterr()
-        assert "THAI NUMBERS TYPING COST ANALYSIS" in captured.out
-        assert "Key Finding:" in captured.out
+            # Run main function
+            main()
 
-        # Check that JSON is always created (JSON-first architecture)
-        json_file = tmp_path / "analysis.json"
-        assert json_file.exists()
+            # Check console output
+            captured = capsys.readouterr()
+            assert (
+                "AUTOMATIC COMPARISON: ALL SCENARIOS & TYPIST PROFILES" in captured.out
+            )
+            assert "📦 JSON ANALYSIS SAVED" in captured.out
+            assert "📄 COMPARISON REPORT GENERATED" in captured.out
 
-    def test_cli_with_different_typist_profiles(
+            # Check that both JSON and markdown are always created
+            json_file = tmp_path / "output" / "analysis.json"
+            assert json_file.exists()
+
+            # Check for markdown report (with timestamp)
+            output_dir = tmp_path / "output"
+            markdown_files = list(output_dir.glob("comparison_report_*.md"))
+            assert len(markdown_files) >= 1
+        finally:
+            os.chdir(original_cwd)
+
+    def test_cli_analyzes_all_typist_profiles(
         self, sample_thai_text_file, tmp_path, monkeypatch, capsys
     ):
-        """Test CLI with different typist profiles."""
-        for profile in ["expert", "skilled", "average", "worst"]:
-            capsys.readouterr()  # Clear previous output
+        """Test CLI automatically analyzes all typist profiles."""
+        # Change to tmp directory so output goes there
+        original_cwd = os.getcwd()
+        os.chdir(tmp_path)
 
-            test_args = [
-                "main.py",
-                sample_thai_text_file,
-                "--typist",
-                profile,
-                "--output",
-                str(tmp_path),
-            ]
+        try:
+            test_args = ["main.py", sample_thai_text_file]
             monkeypatch.setattr("sys.argv", test_args)
 
             main()
 
-            captured = capsys.readouterr()
-            profile_info = TypistProfile.get_profile(profile)
-            assert profile_info["name"] in captured.out
-            assert str(profile_info["keystroke_time"]) in captured.out
+            # Check that JSON contains all typist profiles
+            json_file = tmp_path / "output" / "analysis.json"
+            assert json_file.exists()
 
-    def test_cli_basic_json_workflow(
-        self, sample_thai_text_file, tmp_path, monkeypatch, capsys
-    ):
-        """Test CLI JSON-first workflow (replaces text-only mode)."""
-        test_args = [
-            "main.py",
-            sample_thai_text_file,
-            "--format",
-            "json",
-            "--output-json",
-            "analysis.json",
-            "--output",
-            str(tmp_path),
-        ]
-        monkeypatch.setattr("sys.argv", test_args)
+            with open(json_file, "r", encoding="utf-8") as f:
+                analysis_data = json.load(f)
 
-        main()
+            # Should have all 4 typist profiles
+            typist_profiles = analysis_data["typist_profiles"]
+            analysis_results = analysis_data["analysis_results"]
 
-        captured = capsys.readouterr()
-        assert "GENERATING JSON-FIRST ANALYSIS" in captured.out
+            assert len(typist_profiles) == 4
+            assert len(analysis_results) == 4
 
-        # Should have JSON analysis file
-        json_file = tmp_path / "analysis.json"
-        assert json_file.exists()
-
-    def test_cli_markdown_format_workflow(
-        self, sample_thai_text_file, tmp_path, monkeypatch, capsys
-    ):
-        """Test CLI markdown format workflow (replaces keyboard-only mode)."""
-        test_args = [
-            "main.py",
-            sample_thai_text_file,
-            "--format",
-            "markdown",
-            "--output",
-            str(tmp_path),
-        ]
-        monkeypatch.setattr("sys.argv", test_args)
-
-        main()
-
-        captured = capsys.readouterr()
-        assert "GENERATING JSON-FIRST ANALYSIS" in captured.out
-        # Should have markdown report file
-        report_files = list(tmp_path.glob("Thai_Numbers_Analysis_Report_*.md"))
-        assert len(report_files) >= 1
-
-    def test_cli_compare_all_typists(
-        self, sample_thai_text_file, tmp_path, monkeypatch, capsys
-    ):
-        """Test CLI with --compare-all flag."""
-        test_args = [
-            "main.py",
-            sample_thai_text_file,
-            "--compare-all",
-            "--output",
-            str(tmp_path),
-        ]
-        monkeypatch.setattr("sys.argv", test_args)
-
-        main()
-
-        captured = capsys.readouterr()
-        assert "GENERATING JSON-FIRST ANALYSIS" in captured.out
-        assert "Key Finding:" in captured.out
-
-        # Should analyze for all typist profiles (verified internally by JSON generator)
-        # The --compare-all flag enables comprehensive analysis across all skill levels
-        # Individual profile names don't appear in console output but are included in analysis
-
-        # Check that JSON is always created (JSON-first architecture)
-        json_file = tmp_path / "analysis.json"
-        assert json_file.exists()
+            for profile_key in ["expert", "skilled", "average", "worst"]:
+                assert profile_key in typist_profiles
+                assert profile_key in analysis_results
+        finally:
+            os.chdir(original_cwd)
 
     def test_cli_list_typists(self, monkeypatch, capsys):
         """Test CLI --list-typists functionality."""
@@ -168,299 +120,6 @@ class TestBasicCLIWorkflows:
         captured = capsys.readouterr()
         assert "Error: Document not found" in captured.out
 
-    def test_cli_invalid_typist_profile(
-        self, sample_thai_text_file, monkeypatch, capsys
-    ):
-        """Test CLI with invalid typist profile."""
-        test_args = ["main.py", sample_thai_text_file, "--typist", "invalid_profile"]
-        monkeypatch.setattr("sys.argv", test_args)
-
-        with pytest.raises(SystemExit) as exc_info:
-            main()
-
-        assert (
-            exc_info.value.code == 2
-        )  # argparse exits with code 2 for invalid choices
-
-        captured = capsys.readouterr()
-        # argparse handles the error and shows usage info, not our custom error messages
-        assert "invalid choice" in captured.err or "invalid choice" in captured.out
-
-
-class TestJSONFirstArchitecture:
-    """Test suite for JSON-first architecture workflows."""
-
-    def test_cli_output_json_basic(
-        self, sample_thai_text_file, tmp_path, monkeypatch, capsys
-    ):
-        """Test basic JSON output functionality."""
-        json_file = tmp_path / "analysis_results.json"
-        test_args = ["main.py", sample_thai_text_file, "--output-json", str(json_file)]
-        monkeypatch.setattr("sys.argv", test_args)
-
-        main()
-
-        captured = capsys.readouterr()
-        assert "JSON ANALYSIS SAVED" in captured.out
-        assert str(json_file) in captured.out
-
-        # Verify JSON file was created and is valid
-        assert json_file.exists()
-
-        with open(json_file, "r", encoding="utf-8") as f:
-            analysis_data = json.load(f)
-
-        # Check JSON structure
-        required_sections = [
-            "metadata",
-            "document_analysis",
-            "typist_profiles",
-            "analysis_results",
-            "research_questions",
-            "impact_projections",
-            "key_findings",
-            "recommendations",
-        ]
-
-        for section in required_sections:
-            assert section in analysis_data, f"Missing JSON section: {section}"
-
-    def test_cli_output_json_with_all_typists(
-        self, sample_thai_text_file, tmp_path, monkeypatch, capsys
-    ):
-        """Test JSON output with all typist profiles."""
-        json_file = tmp_path / "all_typists.json"
-        test_args = [
-            "main.py",
-            sample_thai_text_file,
-            "--compare-all",
-            "--output-json",
-            str(json_file),
-        ]
-        monkeypatch.setattr("sys.argv", test_args)
-
-        main()
-
-        # Verify JSON includes all typist profiles
-        with open(json_file, "r", encoding="utf-8") as f:
-            analysis_data = json.load(f)
-
-        typist_profiles = analysis_data["typist_profiles"]
-        analysis_results = analysis_data["analysis_results"]
-
-        # Should have all 4 typist profiles
-        assert len(typist_profiles) == 4
-        assert len(analysis_results) == 4
-
-        for profile_key in TypistProfile.PROFILES.keys():
-            assert profile_key in typist_profiles
-            assert profile_key in analysis_results
-
-    def test_cli_render_from_json_markdown(
-        self, sample_thai_text_file, tmp_path, monkeypatch, capsys
-    ):
-        """Test rendering markdown from existing JSON."""
-        # First, create JSON file
-        json_file = tmp_path / "source.json"
-        test_args = ["main.py", sample_thai_text_file, "--output-json", str(json_file)]
-        monkeypatch.setattr("sys.argv", test_args)
-        main()
-
-        capsys.readouterr()  # Clear output
-
-        # Then, render markdown from JSON
-        test_args = [
-            "main.py",
-            "--render-from-json",
-            str(json_file),
-            "--format",
-            "markdown",
-            "--output",
-            str(tmp_path),
-        ]
-        monkeypatch.setattr("sys.argv", test_args)
-        main()
-
-        captured = capsys.readouterr()
-        assert "MARKDOWN REPORT GENERATED" in captured.out
-
-        # Check that markdown file was created
-        markdown_files = list(tmp_path.glob("*.md"))
-        assert len(markdown_files) > 0
-
-        # Verify markdown content
-        markdown_file = markdown_files[0]
-        content = markdown_file.read_text(encoding="utf-8")
-        assert "# Thai Numbers Typing Cost Analysis - Research Report" in content
-        assert "## Executive Summary" in content
-        assert "## Research Questions Answered" in content
-
-    def test_cli_render_from_json_console(
-        self, sample_thai_text_file, tmp_path, monkeypatch, capsys
-    ):
-        """Test rendering console output from existing JSON."""
-        # First, create JSON file
-        json_file = tmp_path / "source.json"
-        test_args = ["main.py", sample_thai_text_file, "--output-json", str(json_file)]
-        monkeypatch.setattr("sys.argv", test_args)
-        main()
-
-        capsys.readouterr()  # Clear output
-
-        # Then, render console from JSON
-        test_args = [
-            "main.py",
-            "--render-from-json",
-            str(json_file),
-            "--format",
-            "console",
-        ]
-        monkeypatch.setattr("sys.argv", test_args)
-        main()
-
-        captured = capsys.readouterr()
-        assert "THAI NUMBERS TYPING COST ANALYSIS - SUMMARY" in captured.out
-        assert "TYPING COST BY SCENARIO:" in captured.out
-        assert "RECOMMENDATIONS:" in captured.out
-
-    def test_cli_json_first_with_format_options(
-        self, sample_thai_text_file, tmp_path, monkeypatch, capsys
-    ):
-        """Test JSON-first workflow with different format options."""
-        formats = ["json", "markdown", "console"]
-
-        for format_type in formats:
-            capsys.readouterr()  # Clear output
-
-            if format_type == "json":
-                json_file = tmp_path / f"test_{format_type}.json"
-                test_args = [
-                    "main.py",
-                    sample_thai_text_file,
-                    "--output-json",
-                    str(json_file),
-                    "--format",
-                    format_type,
-                ]
-            else:
-                test_args = [
-                    "main.py",
-                    sample_thai_text_file,
-                    "--format",
-                    format_type,
-                    "--output",
-                    str(tmp_path),
-                ]
-
-            monkeypatch.setattr("sys.argv", test_args)
-            main()
-
-            captured = capsys.readouterr()
-
-            if format_type == "json":
-                assert "JSON ANALYSIS SAVED" in captured.out
-            elif format_type == "markdown":
-                assert "MARKDOWN REPORT GENERATED" in captured.out
-            elif format_type == "console":
-                assert "THAI NUMBERS TYPING COST ANALYSIS - SUMMARY" in captured.out
-
-    def test_cli_render_from_nonexistent_json(self, monkeypatch, capsys):
-        """Test rendering from nonexistent JSON file."""
-        test_args = [
-            "main.py",
-            "--render-from-json",
-            "/nonexistent/file.json",
-            "--format",
-            "markdown",
-        ]
-        monkeypatch.setattr("sys.argv", test_args)
-
-        with pytest.raises(SystemExit) as exc_info:
-            main()
-
-        assert exc_info.value.code == 1
-
-        captured = capsys.readouterr()
-        assert "Error: JSON file not found" in captured.out
-
-
-class TestLegacyCompatibility:
-    """Test suite for legacy compatibility features."""
-
-    def test_cli_format_markdown_report(
-        self, sample_thai_text_file, tmp_path, monkeypatch, capsys
-    ):
-        """Test --format markdown functionality (replaces legacy --markdown-report)."""
-        test_args = [
-            "main.py",
-            sample_thai_text_file,
-            "--format",
-            "markdown",
-            "--output",
-            str(tmp_path),
-        ]
-        monkeypatch.setattr("sys.argv", test_args)
-
-        main()
-
-        captured = capsys.readouterr()
-        assert "GENERATING JSON-FIRST ANALYSIS" in captured.out
-        assert "Key Finding:" in captured.out
-
-        # Check that markdown report was created
-        markdown_files = list(tmp_path.glob("Thai_Numbers_Analysis_Report_*.md"))
-        assert len(markdown_files) > 0
-
-        # Verify report content
-        report_file = markdown_files[0]
-        content = report_file.read_text(encoding="utf-8")
-        assert "# Thai Numbers Typing Cost Analysis - Research Report" in content
-
-    def test_cli_compare_all_json_workflow(
-        self, sample_thai_text_file, tmp_path, monkeypatch, capsys
-    ):
-        """Test JSON-first workflow with --compare-all."""
-        test_args = [
-            "main.py",
-            sample_thai_text_file,
-            "--compare-all",
-            "--output",
-            str(tmp_path),
-        ]
-        monkeypatch.setattr("sys.argv", test_args)
-
-        main()
-
-        captured = capsys.readouterr()
-        # Should generate JSON-first analysis with all typists
-        assert "GENERATING JSON-FIRST ANALYSIS" in captured.out
-
-    def test_cli_json_format_only(
-        self, sample_thai_text_file, tmp_path, monkeypatch, capsys
-    ):
-        """Test JSON format only output (replaces --no-markdown functionality)."""
-        test_args = [
-            "main.py",
-            sample_thai_text_file,
-            "--compare-all",
-            "--format",
-            "json",
-            "--output-json",
-            "analysis.json",
-            "--output",
-            str(tmp_path),
-        ]
-        monkeypatch.setattr("sys.argv", test_args)
-
-        main()
-
-        captured = capsys.readouterr()
-        # Should generate JSON-first analysis
-        assert "GENERATING JSON-FIRST ANALYSIS" in captured.out
-        # Should have JSON analysis file only
-        json_file = tmp_path / "analysis.json"
-        assert json_file.exists()
-
 
 class TestFileOperations:
     """Test suite for file operations and I/O."""
@@ -469,16 +128,23 @@ class TestFileOperations:
         self, sample_thai_text_file, tmp_path, monkeypatch
     ):
         """Test that CLI creates necessary output directories."""
-        output_dir = tmp_path / "custom_output"
-        test_args = ["main.py", sample_thai_text_file, "--output", str(output_dir)]
-        monkeypatch.setattr("sys.argv", test_args)
+        # Change to tmp directory so output goes there
+        original_cwd = os.getcwd()
+        os.chdir(tmp_path)
 
-        main()
+        try:
+            test_args = ["main.py", sample_thai_text_file]
+            monkeypatch.setattr("sys.argv", test_args)
 
-        # Check that base output directory was created and JSON file exists
-        assert output_dir.exists()
-        json_file = output_dir / "analysis.json"
-        assert json_file.exists()
+            main()
+
+            # Check that output directory was created and JSON file exists
+            output_dir = tmp_path / "output"
+            assert output_dir.exists()
+            json_file = output_dir / "analysis.json"
+            assert json_file.exists()
+        finally:
+            os.chdir(original_cwd)
 
     def test_cli_handles_unicode_paths(self, tmp_path, monkeypatch):
         """Test CLI with Unicode file paths."""
@@ -486,17 +152,23 @@ class TestFileOperations:
         unicode_file = tmp_path / "ไฟล์ไทย.txt"
         unicode_file.write_text("ปี ๒๕๖๐ มีความสำคัญ", encoding="utf-8")
 
-        unicode_output = tmp_path / "ผลลัพธ์"
+        # Change to tmp directory so output goes there
+        original_cwd = os.getcwd()
+        os.chdir(tmp_path)
 
-        test_args = ["main.py", str(unicode_file), "--output", str(unicode_output)]
-        monkeypatch.setattr("sys.argv", test_args)
+        try:
+            test_args = ["main.py", str(unicode_file)]
+            monkeypatch.setattr("sys.argv", test_args)
 
-        main()
+            main()
 
-        # Should handle Unicode paths without issues and create JSON file
-        assert unicode_output.exists()
-        json_file = unicode_output / "analysis.json"
-        assert json_file.exists()
+            # Should handle Unicode paths without issues and create JSON file
+            output_dir = tmp_path / "output"
+            assert output_dir.exists()
+            json_file = output_dir / "analysis.json"
+            assert json_file.exists()
+        finally:
+            os.chdir(original_cwd)
 
     def test_cli_handles_spaces_in_paths(self, tmp_path, monkeypatch):
         """Test CLI with spaces in file paths."""
@@ -504,17 +176,23 @@ class TestFileOperations:
         spaced_file = tmp_path / "file with spaces.txt"
         spaced_file.write_text("ปี ๒๕๖๐ test", encoding="utf-8")
 
-        spaced_output = tmp_path / "output with spaces"
+        # Change to tmp directory so output goes there
+        original_cwd = os.getcwd()
+        os.chdir(tmp_path)
 
-        test_args = ["main.py", str(spaced_file), "--output", str(spaced_output)]
-        monkeypatch.setattr("sys.argv", test_args)
+        try:
+            test_args = ["main.py", str(spaced_file)]
+            monkeypatch.setattr("sys.argv", test_args)
 
-        main()
+            main()
 
-        # Should handle spaced paths without issues and create JSON file
-        assert spaced_output.exists()
-        json_file = spaced_output / "analysis.json"
-        assert json_file.exists()
+            # Should handle spaced paths without issues and create JSON file
+            output_dir = tmp_path / "output"
+            assert output_dir.exists()
+            json_file = output_dir / "analysis.json"
+            assert json_file.exists()
+        finally:
+            os.chdir(original_cwd)
 
     def test_cli_preserves_file_encoding(self, tmp_path, monkeypatch, capsys):
         """Test that CLI preserves UTF-8 encoding in analysis."""
@@ -523,16 +201,23 @@ class TestFileOperations:
         thai_content = "วิเคราะห์ตัวเลขไทย ๑๒๓๔๕ และตัวเลขสากล 67890"
         thai_file.write_text(thai_content, encoding="utf-8")
 
-        test_args = ["main.py", str(thai_file), "--output", str(tmp_path)]
-        monkeypatch.setattr("sys.argv", test_args)
+        # Change to tmp directory so output goes there
+        original_cwd = os.getcwd()
+        os.chdir(tmp_path)
 
-        main()
+        try:
+            test_args = ["main.py", str(thai_file)]
+            monkeypatch.setattr("sys.argv", test_args)
 
-        # Check that analysis ran successfully with Thai characters
-        captured = capsys.readouterr()
-        assert "GENERATING JSON-FIRST ANALYSIS" in captured.out
-        assert "Key Finding:" in captured.out
-        # Analysis should handle Thai characters without errors
+            main()
+
+            # Check that analysis ran successfully with Thai characters
+            captured = capsys.readouterr()
+            assert "THAI NUMBERS TYPING COST COMPARISON" in captured.out
+            assert "📦 JSON ANALYSIS SAVED" in captured.out
+            # Analysis should handle Thai characters without errors
+        finally:
+            os.chdir(original_cwd)
 
 
 class TestErrorHandling:
@@ -543,54 +228,43 @@ class TestErrorHandling:
         empty_file = tmp_path / "empty.txt"
         empty_file.write_text("", encoding="utf-8")
 
-        test_args = ["main.py", str(empty_file), "--output", str(tmp_path)]
-        monkeypatch.setattr("sys.argv", test_args)
+        # Change to tmp directory so output goes there
+        original_cwd = os.getcwd()
+        os.chdir(tmp_path)
 
-        main()
+        try:
+            test_args = ["main.py", str(empty_file)]
+            monkeypatch.setattr("sys.argv", test_args)
 
-        # Should handle empty document gracefully
-        captured = capsys.readouterr()
-        assert "Key Finding:" in captured.out
+            main()
 
-        # Should handle empty document without errors
-        assert "GENERATING JSON-FIRST ANALYSIS" in captured.out
+            # Should handle empty document gracefully
+            captured = capsys.readouterr()
+            assert "📦 JSON ANALYSIS SAVED" in captured.out
+            assert "THAI NUMBERS TYPING COST COMPARISON" in captured.out
+        finally:
+            os.chdir(original_cwd)
 
     def test_cli_handles_document_without_digits(self, tmp_path, monkeypatch, capsys):
         """Test CLI with document containing no digits."""
         no_digits_file = tmp_path / "no_digits.txt"
         no_digits_file.write_text("สวัสดี Hello World ไม่มีตัวเลข", encoding="utf-8")
 
-        test_args = ["main.py", str(no_digits_file), "--output", str(tmp_path)]
-        monkeypatch.setattr("sys.argv", test_args)
-
-        main()
-
-        # Should handle no digits gracefully
-        captured = capsys.readouterr()
-        assert "Key Finding:" in captured.out
-
-    def test_cli_handles_read_only_output_directory(
-        self, sample_thai_text_file, tmp_path, monkeypatch, capsys
-    ):
-        """Test CLI with read-only output directory."""
-        readonly_dir = tmp_path / "readonly"
-        readonly_dir.mkdir()
-        readonly_dir.chmod(0o444)  # Read-only
-
-        test_args = ["main.py", sample_thai_text_file, "--output", str(readonly_dir)]
-        monkeypatch.setattr("sys.argv", test_args)
+        # Change to tmp directory so output goes there
+        original_cwd = os.getcwd()
+        os.chdir(tmp_path)
 
         try:
-            # Should handle permission errors gracefully without crashing
+            test_args = ["main.py", str(no_digits_file)]
+            monkeypatch.setattr("sys.argv", test_args)
+
             main()
 
-            # Check that error was handled gracefully
+            # Should handle no digits gracefully
             captured = capsys.readouterr()
-            assert "JSON analysis failed" in captured.out
-            assert "Permission denied" in captured.out
+            assert "📦 JSON ANALYSIS SAVED" in captured.out
         finally:
-            # Restore permissions for cleanup
-            readonly_dir.chmod(0o755)
+            os.chdir(original_cwd)
 
     def test_cli_invalid_arguments_show_help(self, monkeypatch, capsys):
         """Test that invalid arguments show help message."""
@@ -612,112 +286,89 @@ class TestEndToEndWorkflows:
         self, sample_thai_text_file, tmp_path, monkeypatch, capsys
     ):
         """Test complete analysis workflow from start to finish."""
-        json_file = tmp_path / "complete_analysis.json"
+        # Change to tmp directory so output goes there
+        original_cwd = os.getcwd()
+        os.chdir(tmp_path)
 
-        # Step 1: Generate JSON analysis
-        test_args = [
-            "main.py",
-            sample_thai_text_file,
-            "--compare-all",
-            "--output-json",
-            str(json_file),
-        ]
-        monkeypatch.setattr("sys.argv", test_args)
-        main()
+        try:
+            # Single step: Generate both JSON and markdown automatically
+            test_args = ["main.py", sample_thai_text_file]
+            monkeypatch.setattr("sys.argv", test_args)
+            main()
 
-        capsys.readouterr()  # Clear output
+            # Verify complete workflow outputs
+            output_dir = tmp_path / "output"
+            json_file = output_dir / "analysis.json"
+            assert json_file.exists()
 
-        # Step 2: Render markdown from JSON
-        test_args = [
-            "main.py",
-            "--render-from-json",
-            str(json_file),
-            "--format",
-            "markdown",
-            "--output",
-            str(tmp_path),
-        ]
-        monkeypatch.setattr("sys.argv", test_args)
-        main()
+            # Check JSON content
+            with open(json_file, "r", encoding="utf-8") as f:
+                json_data = json.load(f)
 
-        # Verify complete workflow
-        assert json_file.exists()
+            assert len(json_data["typist_profiles"]) == 4  # All typists
+            assert len(json_data["analysis_results"]) == 4
 
-        # Check JSON content
-        with open(json_file, "r", encoding="utf-8") as f:
-            json_data = json.load(f)
+            # Check markdown files were created
+            markdown_files = list(output_dir.glob("comparison_report_*.md"))
+            assert len(markdown_files) > 0
 
-        assert len(json_data["typist_profiles"]) == 4  # All typists
-        assert len(json_data["analysis_results"]) == 4
+            # Verify simplified markdown content
+            markdown_content = markdown_files[0].read_text(encoding="utf-8")
+            assert "# Thai Numbers Typing Analysis Comparison" in markdown_content
+            assert "## Typing Time Comparison (minutes)" in markdown_content
+            assert "## Detailed Breakdown by Typist Profile" in markdown_content
+        finally:
+            os.chdir(original_cwd)
 
-        # Check markdown files were created
-        markdown_files = list(tmp_path.glob("*.md"))
-        assert len(markdown_files) > 0
-
-        # Verify markdown content quality
-        markdown_content = markdown_files[0].read_text(encoding="utf-8")
-        assert len(markdown_content) > 5000  # Substantial report
-        assert "# Thai Numbers Typing Cost Analysis" in markdown_content
-        assert "## Executive Summary" in markdown_content
-        assert "## Conclusion & Recommendations" in markdown_content
-
-    def test_data_consistency_across_formats(
+    def test_json_and_markdown_data_consistency(
         self, sample_thai_text_file, tmp_path, monkeypatch, capsys
     ):
-        """Test that data is consistent across different output formats."""
-        json_file = tmp_path / "consistency_test.json"
+        """Test that JSON and markdown contain consistent data."""
+        # Change to tmp directory so output goes there
+        original_cwd = os.getcwd()
+        os.chdir(tmp_path)
 
-        # Generate JSON
-        test_args = ["main.py", sample_thai_text_file, "--output-json", str(json_file)]
-        monkeypatch.setattr("sys.argv", test_args)
-        main()
+        try:
+            # Generate both JSON and markdown automatically
+            test_args = ["main.py", sample_thai_text_file]
+            monkeypatch.setattr("sys.argv", test_args)
+            main()
 
-        # Load JSON data
-        with open(json_file, "r", encoding="utf-8") as f:
-            json_data = json.load(f)
+            # Load JSON data
+            output_dir = tmp_path / "output"
+            json_file = output_dir / "analysis.json"
+            with open(json_file, "r", encoding="utf-8") as f:
+                json_data = json.load(f)
 
-        capsys.readouterr()  # Clear output
+            # Load markdown data
+            markdown_files = list(output_dir.glob("comparison_report_*.md"))
+            assert len(markdown_files) > 0
+            markdown_content = markdown_files[0].read_text(encoding="utf-8")
 
-        # Render console format and capture output
-        test_args = [
-            "main.py",
-            "--render-from-json",
-            str(json_file),
-            "--format",
-            "console",
-        ]
-        monkeypatch.setattr("sys.argv", test_args)
-        main()
+            # Verify key data points are consistent between JSON and markdown
+            # Check that all 4 typist profiles are represented
+            for profile_key in ["expert", "skilled", "average", "worst"]:
+                assert profile_key in json_data["typist_profiles"]
+                assert profile_key in json_data["analysis_results"]
 
-        captured = capsys.readouterr()
-        console_output = captured.out
+                # Profile name should appear in markdown
+                profile_name = json_data["typist_profiles"][profile_key]["name"]
+                assert profile_name in markdown_content
 
-        # Verify key data points are consistent
-        key_findings = json_data["key_findings"]
-        time_saved = str(key_findings["improvement"]["time_saved_minutes"])
-        efficiency_gain = str(key_findings["improvement"]["efficiency_gain_percentage"])
-
-        assert time_saved in console_output
-        assert efficiency_gain in console_output
-
-        # Render markdown and check consistency
-        test_args = [
-            "main.py",
-            "--render-from-json",
-            str(json_file),
-            "--format",
-            "markdown",
-            "--output",
-            str(tmp_path),
-        ]
-        monkeypatch.setattr("sys.argv", test_args)
-        main()
-
-        markdown_files = list(tmp_path.glob("*.md"))
-        markdown_content = markdown_files[0].read_text(encoding="utf-8")
-
-        assert time_saved in markdown_content
-        assert efficiency_gain in markdown_content
+            # Check that typing times from JSON appear in markdown
+            for profile_key in ["expert", "skilled", "average", "worst"]:
+                scenarios = json_data["analysis_results"][profile_key]["scenarios"]
+                for scenario_key in [
+                    "thai_kedmanee",
+                    "intl_kedmanee",
+                    "thai_pattajoti",
+                    "intl_pattajoti",
+                ]:
+                    time_minutes = scenarios[scenario_key]["total_cost_minutes"]
+                    # Time should appear in markdown (formatted to 1 decimal place)
+                    assert f"{time_minutes:.1f}" in markdown_content
+        finally:
+            os.chdir(original_cwd)
 
 
 # Pytest markers

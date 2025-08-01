@@ -14,11 +14,95 @@ from pathlib import Path
 # Add the src directory to Python path for imports
 sys.path.insert(0, str(Path(__file__).parent))
 
-from calculators.typing_cost_calculator import TypingCostCalculator
 from generators.json_analysis_generator import JSONAnalysisGenerator
 from models.typist_profiles import TypistProfile
-from renderers.console_renderer import render_json_to_console
-from renderers.markdown_renderer import render_json_to_markdown
+
+
+def render_simple_comparison_markdown(analysis_data: dict, output_path: str) -> None:
+    """Render simple comparison table markdown report."""
+    metadata = analysis_data.get("metadata", {})
+    document_stats = metadata.get("document_stats", {})
+    typist_profiles = analysis_data.get("typist_profiles", {})
+    analysis_results = analysis_data.get("analysis_results", {})
+
+    # Build simple markdown content
+    content = []
+    content.append("# Thai Numbers Typing Analysis Comparison")
+    content.append("")
+    content.append(f"## Document: {metadata.get('document_path', 'Unknown')}")
+    content.append(
+        f"Characters: {document_stats.get('total_characters', 'N/A'):,} | "
+        f"Digits: {document_stats.get('total_digits', 'N/A'):,}"
+    )
+    content.append("")
+
+    # Main comparison table
+    content.append("## Typing Time Comparison (minutes)")
+    content.append("")
+    content.append(
+        "| Typist Profile | Thai + Kedmanee | Intl + Kedmanee | Thai + Pattajoti | Intl + Pattajoti |"
+    )
+    content.append(
+        "|----------------|-----------------|-----------------|------------------|------------------|"
+    )
+
+    # Sort profiles for consistent ordering
+    profile_order = ["expert", "skilled", "average", "worst"]
+    for profile_key in profile_order:
+        if profile_key in analysis_results:
+            profile_name = typist_profiles.get(profile_key, {}).get(
+                "name", profile_key.title()
+            )
+            scenarios = analysis_results[profile_key].get("scenarios", {})
+
+            thai_kedmanee = scenarios.get("thai_kedmanee", {}).get(
+                "total_cost_minutes", 0
+            )
+            intl_kedmanee = scenarios.get("intl_kedmanee", {}).get(
+                "total_cost_minutes", 0
+            )
+            thai_pattajoti = scenarios.get("thai_pattajoti", {}).get(
+                "total_cost_minutes", 0
+            )
+            intl_pattajoti = scenarios.get("intl_pattajoti", {}).get(
+                "total_cost_minutes", 0
+            )
+
+            content.append(
+                f"| {profile_name:<14} | {thai_kedmanee:>13.1f} | "
+                f"{intl_kedmanee:>13.1f} | {thai_pattajoti:>14.1f} | {intl_pattajoti:>14.1f} |"
+            )
+
+    content.append("")
+    content.append("## Detailed Breakdown by Typist Profile")
+    content.append("")
+
+    # Detailed sections for each profile
+    for profile_key in profile_order:
+        if profile_key in analysis_results:
+            profile_info = typist_profiles.get(profile_key, {})
+            profile_name = profile_info.get("name", profile_key.title())
+            keystroke_time = profile_info.get("keystroke_time", 0)
+            scenarios = analysis_results[profile_key].get("scenarios", {})
+
+            content.append(f"### {profile_name} ({keystroke_time}s keystroke)")
+            content.append(
+                f"- Thai + Kedmanee: {scenarios.get('thai_kedmanee', {}).get('total_cost_minutes', 0):.1f} minutes"
+            )
+            content.append(
+                f"- Intl + Kedmanee: {scenarios.get('intl_kedmanee', {}).get('total_cost_minutes', 0):.1f} minutes"
+            )
+            content.append(
+                f"- Thai + Pattajoti: {scenarios.get('thai_pattajoti', {}).get('total_cost_minutes', 0):.1f} minutes"
+            )
+            content.append(
+                f"- Intl + Pattajoti: {scenarios.get('intl_pattajoti', {}).get('total_cost_minutes', 0):.1f} minutes"
+            )
+            content.append("")
+
+    # Write to file
+    with open(output_path, "w", encoding="utf-8") as f:
+        f.write("\n".join(content))
 
 
 def create_output_directories(base_output_dir: str) -> None:
@@ -26,143 +110,51 @@ def create_output_directories(base_output_dir: str) -> None:
     Path(base_output_dir).mkdir(parents=True, exist_ok=True)
 
 
-def generate_json_and_render(args: argparse.Namespace) -> None:
-    """Generate JSON analysis and render to requested format."""
+def generate_analysis(document_path: str, output_dir: str) -> None:
+    """Generate comprehensive JSON and markdown analysis for all scenarios."""
     print("\n" + "=" * 80)
-    print("GENERATING JSON-FIRST ANALYSIS")
+    print("THAI NUMBERS TYPING COST COMPARISON")
     print("=" * 80)
 
     try:
-        # Generate JSON analysis
-        generator = JSONAnalysisGenerator(args.document)
+        # Generate comprehensive JSON analysis for ALL typist profiles
+        generator = JSONAnalysisGenerator(document_path)
         analysis_data = generator.generate_comprehensive_analysis(
-            include_all_typists=args.compare_all
+            include_all_typists=True
         )
 
-        # ALWAYS save JSON first (JSON-first architecture)
-        primary_json_path = os.path.join(args.output, "analysis.json")
-        generator.save_to_file(analysis_data, primary_json_path)
-        print(f"\n📦 JSON ANALYSIS SAVED: {primary_json_path}")
+        # Always save JSON analysis
+        json_path = os.path.join(output_dir, "analysis.json")
+        generator.save_to_file(analysis_data, json_path)
+        print(f"\n📦 JSON ANALYSIS SAVED: {json_path}")
 
-        # Save additional JSON copy if custom path requested
-        if args.output_json:
-            json_path = args.output_json
-            if not json_path.endswith(".json"):
-                json_path += ".json"
-
-            # Handle both absolute and relative paths correctly
-            if os.path.isabs(json_path):
-                json_full_path = json_path
-            else:
-                json_full_path = os.path.join(args.output, json_path)
-
-            generator.save_to_file(analysis_data, json_full_path)
-            print(f"\n📦 ADDITIONAL JSON COPY SAVED: {json_full_path}")
-
-        # Render to requested format
-        if args.format == "markdown":
-            timestamp = (
-                analysis_data["metadata"]["generated_at"]
-                .replace(":", "")
-                .replace("-", "")
-                .replace("T", "_")
-                .split(".")[0]
-            )
-            markdown_path = f"{args.output}/Thai_Numbers_Analysis_Report_{timestamp}.md"
-
-            render_json_to_markdown(analysis_data, markdown_path)
-            print(f"\n📄 MARKDOWN REPORT GENERATED: {markdown_path}")
-
-        elif args.format == "console":
-            console_output = render_json_to_console(analysis_data, "comprehensive")
-            print("\n" + console_output)
-
-        elif args.format == "json":
-            # JSON already saved above, just show summary
-            console_output = render_json_to_console(analysis_data, "quick")
-            print(f"\n{console_output}")
-
-        print(
-            f"\n🎯 Key Finding: {analysis_data['key_findings']['improvement']['time_saved_minutes']} minutes saved per document"
+        # Always generate simplified markdown comparison report
+        timestamp = (
+            analysis_data["metadata"]["generated_at"]
+            .replace(":", "")
+            .replace("-", "")
+            .replace("T", "_")
+            .split(".")[0]
         )
+        markdown_path = f"{output_dir}/comparison_report_{timestamp}.md"
+
+        render_simple_comparison_markdown(analysis_data, markdown_path)
+        print(f"\n📄 COMPARISON REPORT GENERATED: {markdown_path}")
 
     except Exception as e:
-        print(f"\n⚠️  JSON analysis failed: {e}")
-        print("Falling back to legacy analysis mode...")
-        # Could fall back to legacy mode here if needed
-
-
-def render_from_existing_json(args: argparse.Namespace) -> None:
-    """Render reports from existing JSON file."""
-    json_file = args.render_from_json
-
-    if not os.path.exists(json_file):
-        print(f"Error: JSON file not found at {json_file}")
-        sys.exit(1)
-
-    print(f"Loading analysis data from: {json_file}")
-
-    try:
-        # Load JSON directly without needing generator
-        import json
-
-        with open(json_file, "r", encoding="utf-8") as f:
-            analysis_data = json.load(f)
-
-        if args.format == "markdown":
-            timestamp = (
-                analysis_data["metadata"]["generated_at"]
-                .replace(":", "")
-                .replace("-", "")
-                .replace("T", "_")
-                .split(".")[0]
-            )
-            output_name = Path(json_file).stem + f"_report_{timestamp}.md"
-            output_path = os.path.join(args.output, output_name)
-
-            render_json_to_markdown(analysis_data, output_path)
-            print(f"\n📄 MARKDOWN REPORT GENERATED: {output_path}")
-
-        elif args.format == "console":
-            console_output = render_json_to_console(analysis_data, "comprehensive")
-            print("\n" + console_output)
-
-        elif args.format == "json":
-            # Pretty print the JSON
-            import json
-
-            print(json.dumps(analysis_data, indent=2, ensure_ascii=False))
-
-        print(
-            f"\n🎯 Key Finding: {analysis_data['key_findings']['improvement']['time_saved_minutes']} minutes saved per document"
-        )
-
-    except Exception as e:
-        print(f"\n⚠️  Failed to render from JSON: {e}")
+        print(f"\n⚠️  Analysis failed: {e}")
         sys.exit(1)
 
 
 def main() -> None:
-    """Main CLI application."""
+    """Simplified Thai Numbers Typing Cost Comparison."""
     parser = argparse.ArgumentParser(
-        description="Thai Numbers Typing Cost Analysis",
+        description="Thai Numbers Typing Cost Comparison - Automatically analyzes all scenarios",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Basic analysis with console output
+  # Analyze document and generate all comparisons
   python main.py ../data/thai-con.txt
-
-  # Save analysis as JSON
-  python main.py ../data/thai-con.txt --output-json analysis.json
-
-  # Generate markdown from JSON
-  python main.py --render-from-json analysis.json --format markdown
-
-  # Compare all typist levels and save as JSON + markdown
-  python main.py ../data/thai-con.txt --compare-all --output-json results.json --format markdown
-
-  # Generate focused research report  
-  python main.py ../data/thai-con.txt --compare-all --format markdown
 
   # Show available typist profiles
   python main.py --list-typists
@@ -170,94 +162,42 @@ Examples:
     )
 
     parser.add_argument("document", nargs="?", help="Path to Thai document to analyze")
-
-    parser.add_argument(
-        "--typist",
-        choices=["expert", "skilled", "average", "worst"],
-        default="average",
-        help="Typist skill level (default: average)",
-    )
-
-    parser.add_argument(
-        "--output",
-        "-o",
-        default="../output",
-        help="Output directory for generated files (default: ../output/)",
-    )
-
-    parser.add_argument(
-        "--compare-all",
-        action="store_true",
-        help="Run analysis for all typist skill levels",
-    )
-
     parser.add_argument(
         "--list-typists",
         action="store_true",
         help="List available typist profiles and exit",
     )
 
-    # JSON-first output options
-    parser.add_argument(
-        "--output-json", metavar="JSON_FILE", help="Save analysis results as JSON file"
-    )
-
-    parser.add_argument(
-        "--render-from-json",
-        metavar="JSON_FILE",
-        help="Generate reports from existing JSON file",
-    )
-
-    parser.add_argument(
-        "--format",
-        choices=["json", "markdown", "console"],
-        default="console",
-        help="Output format (default: console)",
-    )
-
     args = parser.parse_args()
 
-    # Handle special commands
+    # Handle list-typists command
     if args.list_typists:
         TypistProfile.list_profiles()
         return
 
-    # Handle render-from-json mode
-    if args.render_from_json:
-        render_from_existing_json(args)
-        return
-
+    # Document path is required for analysis
     if not args.document:
-        parser.error(
-            "Document path is required unless using --list-typists or --render-from-json"
-        )
+        parser.error("Document path is required unless using --list-typists")
 
     # Validate document path
     if not os.path.exists(args.document):
         print(f"Error: Document not found at {args.document}")
         sys.exit(1)
 
-    # Get typist profile
-    typist_profile = TypistProfile.get_profile(args.typist)
-    if not typist_profile:
-        print(f"Error: Invalid typist profile '{args.typist}'")
-        TypistProfile.list_profiles()
-        sys.exit(1)
-
-    # Create output directories
-    create_output_directories(args.output)
+    # Create output directory
+    output_dir = "output"
+    create_output_directories(output_dir)
 
     print("=" * 80)
-    print("THAI NUMBERS TYPING COST ANALYSIS")
+    print("AUTOMATIC COMPARISON: ALL SCENARIOS & TYPIST PROFILES")
     print("=" * 80)
     print(f"Document: {args.document}")
-    print(f"Typist Profile: {typist_profile['name']}")
-    print(f"Base Keystroke Time: {typist_profile['keystroke_time']}s + SHIFT penalty")
-    print(f"Output Directory: {args.output}")
+    print(f"Output Directory: {output_dir}")
+    print("Analyzing: Thai/Intl digits × Kedmanee/Pattajoti × All typist profiles")
     print("=" * 80)
 
-    # JSON-first workflow (simplified - only approach)
-    generate_json_and_render(args)
+    # Generate comprehensive analysis
+    generate_analysis(args.document, output_dir)
 
 
 if __name__ == "__main__":
