@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a comprehensive research analysis tool that quantifies the typing cost difference between Thai digits (๐-๙) and international digits (0-9) in Thai government documents. The system has evolved into a mature JSON-first architecture with enterprise-grade testing infrastructure (264 tests, 100% pass rate) and comprehensive validation against official keyboard standards.
+This is a comprehensive research analysis tool that quantifies the typing cost difference between Thai digits (๐-๙) and international digits (0-9) in Thai government documents. The system has evolved into a mature JSON-first architecture with reliable testing infrastructure (264 tests, 100% pass rate) and comprehensive validation against official keyboard standards.
 
 ## Current Architecture (v3.0+)
 
@@ -38,7 +38,7 @@ The system implements complete data/presentation separation with robust testing:
 - Render to multiple formats (markdown, console) from same data source
 - Enables data/presentation separation and comprehensive testing
 
-**Enterprise Testing Infrastructure**: 264 comprehensive test cases (100% pass rate):
+**Comprehensive Testing**: 264 test cases (100% pass rate):
 - **Unit tests** (185): All core components individually tested
 - **Integration tests** (54): End-to-end CLI workflows and JSON architecture
 - **Validation tests** (25): Keyboard layout accuracy against official standards
@@ -62,15 +62,13 @@ python main.py ../data/thai-con.txt --format markdown --compare-all
 python main.py ../data/thai-con.txt --format console --typist expert
 ```
 
-### CLI Workflow Options (All Supported)
+### CLI Workflow Options (Simplified)
 ```bash
 cd src
 python main.py ../data/thai-con.txt                        # Basic analysis (average typist)
 python main.py ../data/thai-con.txt --compare-all          # All typist skill levels
-python main.py ../data/thai-con.txt --markdown-report      # Generate focused research report
+python main.py ../data/thai-con.txt --format markdown      # Generate focused research report
 python main.py ../data/thai-con.txt --typist expert        # Specific typist analysis
-python main.py ../data/thai-con.txt --keyboard-only        # Keyboard comparison only
-python main.py ../data/thai-con.txt --text-only            # Text analysis only
 python main.py --list-typists                              # Show available profiles
 ```
 
@@ -86,12 +84,8 @@ pytest tests/validation/                  # Validation tests (25 tests)
 pytest --cov=src --cov-report=html --cov-fail-under=90
 pytest --cov=src --cov-report=term-missing
 
-# Multi-environment testing and code quality
-tox                                       # Test Python 3.8-3.12
-tox -e lint                              # Code quality checks
-tox -e type-check                        # Type checking with mypy
-tox -e security                          # Security scanning
-tox -e performance                       # Performance testing
+# Multi-environment testing (simplified)
+tox                                       # Test Python 3.9, 3.11, 3.12
 ```
 
 ## Critical Implementation Details
@@ -141,7 +135,7 @@ The analysis answers 5 specific research questions from `PRD.txt`:
   - `data/Pattajoti.gif` (Official Pattajoti layout)
 - **Visual Validation**: Keyboard models verified against these official images
 
-### Testing Infrastructure Quality Assurance
+### Testing Quality Assurance
 - **264 comprehensive test cases** with 100% pass rate (validated via `pytest --collect-only`)
 - **Cross-validation**: Multiple test approaches ensure consistent results
 - **Standard compliance**: Adherence to Thai keyboard layout standards (TIS 820-2535)
@@ -177,9 +171,6 @@ pytest tests/integration/ -v             # End-to-end workflows
 pytest --cov=src --cov-report=term-missing # Coverage verification
 
 # Code quality and consistency
-tox -e lint                              # Linting and formatting
-tox -e type-check                        # Type checking
-tox -e security                          # Security scanning
 ```
 
 ### Common Development Tasks
@@ -198,19 +189,17 @@ tox -e security                          # Security scanning
 4. **Verify keyboard mappings**: Check character coverage in validation tests
 
 #### Performance Optimization
-1. **Benchmark current performance**: Use `pytest -m "benchmark"`
+1. **Test current performance**: Run the full test suite
 2. **Profile memory usage**: Large document processing validation
-3. **Test multi-environment**: `tox` for Python 3.8-3.12 compatibility
+3. **Test multi-environment**: `tox` for Python 3.9, 3.11, 3.12 compatibility
 4. **Validate Unicode handling**: Ensure efficient Thai character processing
 
 ## Project Maturity Indicators
 
 ### Quality Metrics
-- **264 test cases** with 100% pass rate (enterprise-grade reliability)
-- **Multi-environment support**: Python 3.8-3.12 across operating systems
+- **264 test cases** with 100% pass rate (reliable testing)
+- **Multi-environment support**: Python 3.9, 3.11, 3.12 across operating systems
 - **Comprehensive validation**: Official keyboard standard compliance
-- **Security scanning**: Automated vulnerability detection with clean results
-- **Performance testing**: Scalability validation and optimization
 
 ### Architecture Maturity
 - **Clean separation of concerns**: Models, calculators, generators, renderers
@@ -219,4 +208,4 @@ tox -e security                          # Security scanning
 - **Modular design**: Independent components with clear interfaces
 - **Documentation completeness**: README.md and CLAUDE.md reflect current state
 
-This codebase represents a mature, production-ready research tool with comprehensive testing infrastructure and validated results suitable for policy recommendations in Thai government document processing optimization.
+This codebase represents a focused research tool with reliable testing infrastructure and validated results suitable for policy recommendations in Thai government document processing optimization.

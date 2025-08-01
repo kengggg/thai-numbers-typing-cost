@@ -35,7 +35,7 @@ class TestBasicCLIWorkflows:
         # Check console output
         captured = capsys.readouterr()
         assert "THAI NUMBERS TYPING COST ANALYSIS" in captured.out
-        assert "Analysis complete!" in captured.out
+        assert "Key Finding:" in captured.out
 
         # Check that output files were created
         analysis_dir = tmp_path / "analysis"
@@ -77,14 +77,15 @@ class TestBasicCLIWorkflows:
             assert profile_info["name"] in captured.out
             assert str(profile_info["keystroke_time"]) in captured.out
 
-    def test_cli_text_only_mode(
+    def test_cli_basic_json_workflow(
         self, sample_thai_text_file, tmp_path, monkeypatch, capsys
     ):
-        """Test CLI text-only analysis mode."""
+        """Test CLI JSON-first workflow (replaces text-only mode)."""
         test_args = [
             "main.py",
             sample_thai_text_file,
-            "--text-only",
+            "--format",
+            "json",
             "--output",
             str(tmp_path),
         ]
@@ -93,24 +94,21 @@ class TestBasicCLIWorkflows:
         main()
 
         captured = capsys.readouterr()
-        assert "Running text analysis..." in captured.out
+        assert "GENERATING JSON-FIRST ANALYSIS" in captured.out
 
-        # Should only have text analysis file
-        analysis_dir = tmp_path / "analysis"
-        text_analysis_file = analysis_dir / "text_analysis.txt"
-        assert text_analysis_file.exists()
+        # Should have JSON analysis file
+        json_file = tmp_path / "analysis.json"
+        assert json_file.exists()
 
-        # Should not have other analysis files in this run
-        # (Note: other files might exist from previous tests)
-
-    def test_cli_keyboard_only_mode(
+    def test_cli_markdown_format_workflow(
         self, sample_thai_text_file, tmp_path, monkeypatch, capsys
     ):
-        """Test CLI keyboard-only comparison mode."""
+        """Test CLI markdown format workflow (replaces keyboard-only mode)."""
         test_args = [
             "main.py",
             sample_thai_text_file,
-            "--keyboard-only",
+            "--format",
+            "markdown",
             "--output",
             str(tmp_path),
         ]
@@ -119,9 +117,10 @@ class TestBasicCLIWorkflows:
         main()
 
         captured = capsys.readouterr()
-        assert "Running keyboard comparison" in captured.out
-        assert "KEYBOARD ROW SYSTEM EXPLANATION" in captured.out
-        assert "KEYBOARD LAYOUT COMPARISON" in captured.out
+        assert "GENERATING JSON-FIRST ANALYSIS" in captured.out
+        # Should have markdown report file
+        report_files = list(tmp_path.glob("analysis_report_*.md"))
+        assert len(report_files) >= 1
 
     def test_cli_compare_all_typists(
         self, sample_thai_text_file, tmp_path, monkeypatch, capsys
@@ -402,14 +401,15 @@ class TestJSONFirstArchitecture:
 class TestLegacyCompatibility:
     """Test suite for legacy compatibility features."""
 
-    def test_cli_legacy_markdown_report(
+    def test_cli_format_markdown_report(
         self, sample_thai_text_file, tmp_path, monkeypatch, capsys
     ):
-        """Test legacy --markdown-report functionality."""
+        """Test --format markdown functionality (replaces legacy --markdown-report)."""
         test_args = [
             "main.py",
             sample_thai_text_file,
-            "--markdown-report",
+            "--format",
+            "markdown",
             "--output",
             str(tmp_path),
         ]
@@ -418,15 +418,11 @@ class TestLegacyCompatibility:
         main()
 
         captured = capsys.readouterr()
-        assert (
-            "GENERATING FOCUSED RESEARCH REPORT (Legacy Compatibility)" in captured.out
-        )
-        assert "RESEARCH REPORT GENERATED SUCCESSFULLY!" in captured.out
+        assert "GENERATING JSON-FIRST ANALYSIS" in captured.out
+        assert "Key Finding:" in captured.out
 
         # Check that markdown report was created
-        markdown_files = list(
-            tmp_path.glob("Thai_Numbers_Typing_Cost_Analysis_Report_*.md")
-        )
+        markdown_files = list(tmp_path.glob("analysis_report_*.md"))
         assert len(markdown_files) > 0
 
         # Verify report content
@@ -434,10 +430,10 @@ class TestLegacyCompatibility:
         content = report_file.read_text(encoding="utf-8")
         assert "# Thai Numbers Typing Cost Analysis - Research Report" in content
 
-    def test_cli_legacy_with_compare_all(
+    def test_cli_compare_all_json_workflow(
         self, sample_thai_text_file, tmp_path, monkeypatch, capsys
     ):
-        """Test legacy compatibility with --compare-all."""
+        """Test JSON-first workflow with --compare-all."""
         test_args = [
             "main.py",
             sample_thai_text_file,
@@ -450,20 +446,19 @@ class TestLegacyCompatibility:
         main()
 
         captured = capsys.readouterr()
-        # Should automatically generate markdown report with --compare-all
-        assert (
-            "GENERATING FOCUSED RESEARCH REPORT (Legacy Compatibility)" in captured.out
-        )
+        # Should generate JSON-first analysis with all typists
+        assert "GENERATING JSON-FIRST ANALYSIS" in captured.out
 
-    def test_cli_legacy_no_markdown_flag(
+    def test_cli_json_format_only(
         self, sample_thai_text_file, tmp_path, monkeypatch, capsys
     ):
-        """Test --no-markdown flag to skip automatic report generation."""
+        """Test JSON format only output (replaces --no-markdown functionality)."""
         test_args = [
             "main.py",
             sample_thai_text_file,
             "--compare-all",
-            "--no-markdown",
+            "--format",
+            "json",
             "--output",
             str(tmp_path),
         ]
@@ -472,11 +467,11 @@ class TestLegacyCompatibility:
         main()
 
         captured = capsys.readouterr()
-        # Should NOT generate automatic markdown report with --no-markdown
-        assert (
-            "GENERATING FOCUSED RESEARCH REPORT (Legacy Compatibility)"
-            not in captured.out
-        )
+        # Should generate JSON-first analysis
+        assert "GENERATING JSON-FIRST ANALYSIS" in captured.out
+        # Should have JSON analysis file only
+        json_file = tmp_path / "analysis.json"
+        assert json_file.exists()
 
 
 class TestFileOperations:
@@ -566,7 +561,7 @@ class TestErrorHandling:
 
         # Should handle empty document gracefully
         captured = capsys.readouterr()
-        assert "Analysis complete!" in captured.out
+        assert "Key Finding:" in captured.out
 
         # Files should still be created
         assert (tmp_path / "analysis" / "text_analysis.txt").exists()
@@ -583,7 +578,7 @@ class TestErrorHandling:
 
         # Should handle no digits gracefully
         captured = capsys.readouterr()
-        assert "Analysis complete!" in captured.out
+        assert "Key Finding:" in captured.out
 
     def test_cli_handles_read_only_output_directory(
         self, sample_thai_text_file, tmp_path, monkeypatch

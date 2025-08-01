@@ -36,171 +36,10 @@ def create_output_directories(base_output_dir: str) -> None:
     Path(f"{base_output_dir}/analysis").mkdir(parents=True, exist_ok=True)
 
 
-def run_text_analysis(document_path: str, output_dir: str) -> None:
-    """Run text analysis and save results."""
-    print("Running text analysis...")
-    analyzer = TextAnalyzer(document_path)
-
-    # Print analysis to console
-    analyzer.print_report()
-
-    # Save detailed results
-    stats = analyzer.get_statistics()
-    output_file = f"{output_dir}/analysis/text_analysis.txt"
-
-    with open(output_file, "w", encoding="utf-8") as f:
-        f.write("DETAILED TEXT ANALYSIS RESULTS\n")
-        f.write("=" * 50 + "\n\n")
-        f.write(f"Document Statistics: {stats['document_stats']}\n")
-        f.write(f"Digit Counts: {stats['digit_counts']}\n")
-        f.write(f"Number Sequences: {stats['number_sequences']}\n\n")
-
-        f.write("ALL NUMBER CONTEXTS:\n")
-        for i, ctx in enumerate(stats["contexts"], 1):
-            f.write(f"{i}. {ctx['number']} ({ctx['type']}) at pos {ctx['position']}\n")
-            f.write(f"   Context: {ctx['context']}\n\n")
-
-    print(f"Text analysis saved to: {output_file}")
-    return analyzer
 
 
-def run_keyboard_comparison(typist_profile: Dict, output_dir: str) -> None:
-    """Run keyboard layout comparison."""
-    print(f"\nRunning keyboard comparison for {typist_profile['name']}...")
-
-    # Show explanation and comparison
-    explain_keyboard_rows()
-    print()
-    compare_layouts(typist_profile["keystroke_time"])
-
-    # Save results to file
-    profile_name_safe = (
-        typist_profile["name"]
-        .lower()
-        .replace(" ", "_")
-        .replace("(", "")
-        .replace(")", "")
-    )
-    output_file = f"{output_dir}/analysis/keyboard_comparison_{profile_name_safe}.txt"
-
-    # Capture the keyboard comparison output
-    kedmanee = KedmaneeLayout()
-    pattajoti = PattajotiLayout()
-
-    with open(output_file, "w", encoding="utf-8") as f:
-        f.write(f"KEYBOARD LAYOUT COMPARISON - {typist_profile['name']}\n")
-        f.write("=" * 80 + "\n\n")
-        f.write(
-            f"Base keystroke time: {typist_profile['keystroke_time']}s + SHIFT penalty\n\n"
-        )
-
-        # Layout info
-        kedmanee_info = kedmanee.get_layout_info()
-        pattajoti_info = pattajoti.get_layout_info()
-
-        f.write("LAYOUT INFORMATION:\n")
-        f.write("-" * 40 + "\n")
-        f.write("Kedmanee Layout:\n")
-        for key, value in kedmanee_info.items():
-            f.write(f"  {key}: {value}\n")
-        f.write("\nPattajoti Layout:\n")
-        for key, value in pattajoti_info.items():
-            f.write(f"  {key}: {value}\n")
-
-        # Digit typing costs
-        f.write("\nDIGIT TYPING COSTS (base time + SHIFT penalty):\n")
-        f.write("-" * 50 + "\n")
-        f.write(f"{'Digit':<8} {'Kedmanee':<12} {'Pattajoti':<12} {'Difference':<12}\n")
-        f.write("-" * 50 + "\n")
-
-        # Thai digits
-        f.write("Thai Digits:\n")
-        thai_digits = ["๐", "๑", "๒", "๓", "๔", "๕", "๖", "๗", "๘", "๙"]
-        for digit in thai_digits:
-            ked_cost = kedmanee.calculate_typing_cost(
-                digit, typist_profile["keystroke_time"]
-            )
-            pat_cost = pattajoti.calculate_typing_cost(
-                digit, typist_profile["keystroke_time"]
-            )
-            diff = ked_cost - pat_cost
-            f.write(f"  {digit:<8} {ked_cost:<12.3f} {pat_cost:<12.3f} {diff:+.3f}\n")
-
-        # International digits
-        f.write("\nInternational Digits:\n")
-        intl_digits = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"]
-        for digit in intl_digits:
-            ked_cost = kedmanee.calculate_typing_cost(
-                digit, typist_profile["keystroke_time"]
-            )
-            pat_cost = pattajoti.calculate_typing_cost(
-                digit, typist_profile["keystroke_time"]
-            )
-            diff = ked_cost - pat_cost
-            f.write(f"  {digit:<8} {ked_cost:<12.3f} {pat_cost:<12.3f} {diff:+.3f}\n")
-
-        f.write("\nKEY FINDINGS:\n")
-        f.write("- Thai digits on Kedmanee require SHIFT (2x cost penalty)\n")
-        f.write("- Pattajoti eliminates SHIFT penalty for Thai digits\n")
-        f.write("- International digits perform similarly on both layouts\n")
-
-    print(f"Keyboard comparison saved to: {output_file}")
 
 
-def run_typing_cost_analysis(
-    document_path: str, typist_profile: Dict, output_dir: str
-) -> None:
-    """Run comprehensive typing cost analysis."""
-    print(f"\nRunning typing cost analysis for {typist_profile['name']}...")
-
-    calculator = TypingCostCalculator(document_path, typist_profile["keystroke_time"])
-    calculator.print_comprehensive_report()
-    scenarios = calculator.analyze_all_scenarios()
-    savings = calculator.calculate_savings_analysis(scenarios)
-
-    # Save detailed results
-    profile_name_safe = (
-        typist_profile["name"]
-        .lower()
-        .replace(" ", "_")
-        .replace("(", "")
-        .replace(")", "")
-    )
-
-    # Save typing cost analysis
-    analysis_file = f"{output_dir}/analysis/typing_cost_{profile_name_safe}.txt"
-    with open(analysis_file, "w", encoding="utf-8") as f:
-        f.write(f"TYPING COST ANALYSIS - {typist_profile['name']}\n")
-        f.write(f"Base keystroke time: {typist_profile['keystroke_time']}s\n")
-        f.write("=" * 60 + "\n\n")
-
-        for scenario_name, scenario_data in scenarios.items():
-            f.write(f"SCENARIO: {scenario_name}\n")
-            f.write(
-                f"  Total cost: {scenario_data['total_cost_seconds']:.2f} seconds\n"
-            )
-            f.write(
-                f"  Total cost: {scenario_data['total_cost_minutes']:.2f} minutes\n"
-            )
-            f.write(f"  Total cost: {scenario_data['total_cost_hours']:.4f} hours\n")
-            f.write(
-                f"  Average per character: {scenario_data['average_cost_per_char']*1000:.2f} ms\n"
-            )
-            f.write(f"  Keyboard: {scenario_data['keyboard_layout']}\n")
-            f.write(f"  Conversion: {scenario_data['conversion_applied']}\n\n")
-
-        f.write("SAVINGS ANALYSIS:\n")
-        for scenario_name, saving_data in savings.items():
-            f.write(f"  {scenario_name}:\n")
-            f.write(
-                f"    Time saved: {saving_data['time_saved_minutes']:.2f} minutes\n"
-            )
-            f.write(f"    Percentage saved: {saving_data['percentage_saved']:.2f}%\n")
-            f.write(
-                f"    Cost per digit: {saving_data['cost_per_digit']*1000:.2f} ms\n\n"
-            )
-
-    print(f"Typing cost analysis saved to: {analysis_file}")
 
 
 def run_comparative_analysis(document_path: str, output_dir: str) -> None:
@@ -394,42 +233,6 @@ def render_from_existing_json(args: argparse.Namespace) -> None:
         sys.exit(1)
 
 
-def generate_legacy_markdown_report(args: argparse.Namespace) -> None:
-    """Generate report using JSON-first approach (legacy CLI compatibility)."""
-    print("\n" + "=" * 80)
-    print("GENERATING FOCUSED RESEARCH REPORT (Legacy Compatibility)")
-    print("=" * 80)
-
-    try:
-        # Use JSON-first approach for backward compatibility
-        generator = JSONAnalysisGenerator(args.document)
-        analysis_data = generator.generate_comprehensive_analysis(
-            include_all_typists=args.compare_all
-        )
-
-        # Generate markdown report with timestamp naming
-        timestamp = (
-            analysis_data["metadata"]["generated_at"]
-            .replace(":", "")
-            .replace("-", "")
-            .replace("T", "_")
-            .split(".")[0]
-        )
-        report_path = (
-            f"{args.output}/Thai_Numbers_Typing_Cost_Analysis_Report_{timestamp}.md"
-        )
-
-        render_json_to_markdown(analysis_data, report_path)
-
-        print("\n📊 RESEARCH REPORT GENERATED SUCCESSFULLY!")
-        print(f"📄 Location: {report_path}")
-        print(
-            "🎯 Focus: Direct comparison of Thai vs International digits typing costs"
-        )
-
-    except Exception as e:
-        print(f"\n⚠️  Research report generation failed: {e}")
-        print("Regular analysis results are still available in the output directory.")
 
 
 def main() -> None:
@@ -451,8 +254,8 @@ Examples:
   # Compare all typist levels and save as JSON + markdown
   python main.py ../data/thai-con.txt --compare-all --output-json results.json --format markdown
 
-  # Legacy: Generate focused research report
-  python main.py ../data/thai-con.txt --compare-all --markdown-report
+  # Generate focused research report  
+  python main.py ../data/thai-con.txt --compare-all --format markdown
 
   # Show available typist profiles
   python main.py --list-typists
@@ -487,15 +290,7 @@ Examples:
         help="List available typist profiles and exit",
     )
 
-    parser.add_argument(
-        "--keyboard-only",
-        action="store_true",
-        help="Only run keyboard layout comparison",
-    )
 
-    parser.add_argument(
-        "--text-only", action="store_true", help="Only run text analysis"
-    )
 
     # JSON-first output options
     parser.add_argument(
@@ -515,18 +310,6 @@ Examples:
         help="Output format (default: console)",
     )
 
-    # Legacy markdown support
-    parser.add_argument(
-        "--markdown-report",
-        action="store_true",
-        help="Generate focused research report with date/time naming (legacy)",
-    )
-
-    parser.add_argument(
-        "--no-markdown",
-        action="store_true",
-        help="Skip automatic markdown report generation (legacy)",
-    )
 
     args = parser.parse_args()
 
@@ -569,35 +352,8 @@ Examples:
     print(f"Output Directory: {args.output}")
     print("=" * 80)
 
-    # Run requested analyses
-    if args.text_only:
-        run_text_analysis(args.document, args.output)
-    elif args.keyboard_only:
-        run_keyboard_comparison(typist_profile, args.output)
-    elif args.compare_all:
-        run_text_analysis(args.document, args.output)
-        run_comparative_analysis(args.document, args.output)
-    else:
-        # Full analysis for selected typist
-        run_text_analysis(args.document, args.output)
-        run_keyboard_comparison(typist_profile, args.output)
-        run_typing_cost_analysis(args.document, typist_profile, args.output)
-
-    print(f"\nAnalysis complete! Results saved to: {args.output}/")
-
-    # New JSON-first workflow (check first for explicit JSON requests, but not legacy)
-    if args.output_json or (
-        args.format in ["json", "markdown", "console"]
-        and not args.markdown_report
-        and not (args.compare_all and not args.no_markdown)
-    ):
-        generate_json_and_render(args)
-
-    # Legacy markdown report support
-    elif args.markdown_report or (
-        args.compare_all and not args.no_markdown and not args.output_json
-    ):
-        generate_legacy_markdown_report(args)
+    # JSON-first workflow (simplified - only approach)
+    generate_json_and_render(args)
 
 
 if __name__ == "__main__":

@@ -38,7 +38,7 @@ thai-numbers-typing-cost/
 │   ├── TIS_820-2535,_Figure_2.jpg # Official Kedmanee layout reference
 │   └── Pattajoti.gif            # Official Pattajoti layout reference
 ├── pytest.ini                   # Test configuration
-├── tox.ini                       # Multi-environment testing and code quality
+├── tox.ini                       # Multi-environment testing (Python 3.9, 3.11, 3.12)
 ├── requirements.txt              # Production dependencies (minimal - standard library only)
 ├── requirements-test.txt         # Development and testing dependencies
 └── PRD.txt                       # Project requirements document
@@ -57,9 +57,9 @@ The analysis supports four validated typist profiles based on research data:
 
 ## Quick Start
 
-### JSON-First Workflow (Recommended)
+### Usage
 
-The modern approach separates data generation from presentation rendering:
+The JSON-first approach separates data generation from presentation rendering:
 
 ```bash
 # Generate comprehensive analysis data
@@ -75,32 +75,10 @@ python main.py ../data/thai-con.txt --format markdown --compare-all --output ../
 python main.py ../data/thai-con.txt --format console --typist expert
 ```
 
-### Legacy Direct Workflow (Still Supported)
-
-Traditional analysis with direct output generation:
-
-```bash
-cd src
-
-# Basic analysis with research report generation
-python main.py ../data/thai-con.txt --markdown-report --output ../output/
-
-# Compare all typist skill levels with comprehensive output
-python main.py ../data/thai-con.txt --compare-all --output ../output/
-
-# Specific typist analysis
-python main.py ../data/thai-con.txt --typist expert --output ../output/
-
-# Analysis components individually
-python main.py ../data/thai-con.txt --text-only --output ../output/      # Text analysis only
-python main.py ../data/thai-con.txt --keyboard-only --output ../output/  # Keyboard comparison only
-```
 
 **Note**: All results are saved to `output/` directory. JSON format enables flexible reporting and integration with other tools.
 
 ## Advanced Usage
-
-### JSON-First Architecture Options
 
 ```bash
 cd src
@@ -124,8 +102,6 @@ All markdown reports are automatically timestamped to prevent overwrites and ens
 - **Format**: `analysis_report_YYYYMMDD_HHMMSS.md` (e.g., `analysis_report_20250801_120606.md`)
 - **Source**: Timestamp extracted from analysis metadata generation time
 - **Benefit**: Every analysis run creates a unique report file for historical tracking
-- **Legacy Support**: Timestamped reports work with all existing workflows
-
 **Examples of timestamped outputs:**
 ```bash
 # JSON-first rendering creates timestamped markdown reports
@@ -134,11 +110,7 @@ python main.py --render-from-json analysis.json --format markdown
 
 # Direct markdown generation also uses timestamps
 python main.py ../data/thai-con.txt --format markdown --compare-all
-# Output: Thai_Numbers_Analysis_Report_20250801_120606.md
-
-# Legacy workflow also generates timestamped reports
-python main.py ../data/thai-con.txt --markdown-report --compare-all
-# Output: Thai_Numbers_Typing_Cost_Analysis_Report_20250801_120606.md
+# Output: analysis_report_20250801_120606.md
 ```
 
 ### Testing and Validation
@@ -154,23 +126,13 @@ python -m pytest tests/validation/ -v            # Validation tests (25 tests)
 python -m pytest --cov=src --cov-report=html --cov-fail-under=90
 python -m pytest --cov=src --cov-report=term-missing
 
-# Performance and benchmarking
-python -m pytest -m "benchmark" --benchmark-only
 ```
 
 ### Development Tools
 
 ```bash
 # Multi-environment testing with tox
-tox                          # Test across Python 3.8-3.12
-tox -e lint                  # Code linting and formatting
-tox -e type-check            # Type checking with mypy
-tox -e security              # Security scanning
-tox -e performance           # Performance testing
-tox -e coverage              # Coverage reporting
-
-# Code quality and formatting
-tox -e format                # Auto-format code with black and isort
+tox                          # Test across Python 3.9, 3.11, 3.12
 ```
 
 ## Key Research Findings
