@@ -239,9 +239,11 @@ def run_comparative_analysis(document_path: str, output_dir: str):
             savings = results["savings"]
 
             current_time = scenarios["thai_kedmanee"]["total_cost_minutes"]
-            optimal_key = min(
-                scenarios.keys(), key=lambda k: scenarios[k]["total_cost_minutes"]
-            )
+
+            def get_cost(key):
+                return scenarios[key]["total_cost_minutes"]
+
+            optimal_key = min(scenarios.keys(), key=get_cost)
             optimal_time = scenarios[optimal_key]["total_cost_minutes"]
             time_saved = current_time - optimal_time
             percent_saved = (time_saved / current_time) * 100

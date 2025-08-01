@@ -127,7 +127,7 @@ class ConsoleRenderer:
         )
         content.append("-" * 70)
 
-        for scenario_key, saving in savings.items():
+        for _, saving in savings.items():
             content.append(
                 f"{saving['description']:<30} {saving['time_saved_minutes']:<12.1f} {saving['percentage_saved']:<12.1f}"
             )
@@ -246,7 +246,7 @@ def render_json_to_console(
 ) -> str:
     """Convenience function to render JSON to console format."""
     renderer = ConsoleRenderer(json_data)
-
+    # pylint: disable=no-else-return
     if format_type == "summary":
         return renderer.render_summary()
     elif format_type == "quick":

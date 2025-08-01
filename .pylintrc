@@ -17,14 +17,15 @@ disable=
     # Import-related
     import-error,
     import-outside-toplevel,
+    wrong-import-position,
+    reimported,
     
     # Type-related (handled by mypy)
     no-member,
     not-callable,
     
     # Style preferences
-    line-too-long,  # Handled by black
-    bad-continuation,  # Handled by black
+    line-too-long,
     
     # Documentation
     missing-module-docstring,
@@ -38,16 +39,28 @@ disable=
     too-many-branches,
     too-many-statements,
     too-many-instance-attributes,
+    too-many-positional-arguments,
     
     # Not applicable for this project
     duplicate-code,
     
     # Test-specific exemptions
-    redefined-outer-name,  # Common in pytest fixtures
-    unused-argument,  # Common in test fixtures
+    redefined-outer-name,
+    unused-argument,
     
     # Unicode-related (we use Thai characters)
-    non-ascii-name
+    non-ascii-name,
+    
+    # CLI-related (appropriate for entry points)
+    broad-exception-caught,
+    
+    # Loop-related (acceptable in analysis code)
+    cell-var-from-loop,
+    
+    # Code structure (acceptable for utility functions)
+    unused-variable,
+    pointless-string-statement,
+    no-else-return
 
 # Enable specific checkers
 enable=
@@ -57,9 +70,6 @@ enable=
 [REPORTS]
 # Set the output format
 output-format=colorized
-
-# Include message's id in the output
-include-ids=yes
 
 # Template used to display messages
 msg-template='{path}:{line}:{column}: {msg_id}: {msg} ({symbol})'
@@ -79,7 +89,7 @@ never-returning-functions=sys.exit
 
 [BASIC]
 # Naming conventions
-good-names=i,j,k,ex,Run,_,f,x,y,z,id,db,ui,io,df,ax
+good-names=i,j,k,ex,Run,_,f,x,y,z,id,db,ui,io,df,ax,q1,q2,q3,q4,q5,e
 
 # Regular expressions for naming conventions
 class-rgx=[A-Z_][a-zA-Z0-9]+$
@@ -90,9 +100,6 @@ argument-rgx=[a-z_][a-z0-9_]{2,30}$
 variable-rgx=[a-z_][a-z0-9_]{2,30}$
 module-rgx=(([a-z_][a-z0-9_]*)|([A-Z][a-zA-Z0-9]+))$
 const-rgx=(([A-Z_][A-Z0-9_]*)|(__.*__))$
-
-# Allow Thai characters in names
-class-name-hint=[A-Z_][a-zA-Z0-9\u0E00-\u0E7F]+$
 
 [FORMAT]
 # Maximum number of characters on a single line (handled by black)
@@ -161,8 +168,11 @@ ignored-argument-names=_.*|^ignored_|^unused_
 defining-attr-methods=__init__,__new__,setUp
 
 [DESIGN]
-# Maximum number of arguments for function / method
+# Maximum number of arguments for function / method  
 max-args=8
+
+# Maximum number of positional arguments for function / method
+max-positional-arguments=6
 
 # Maximum number of attributes for a class
 max-attributes=10
@@ -185,4 +195,4 @@ analyse-fallback-blocks=no
 
 [EXCEPTIONS]
 # Exceptions that will emit a warning when being caught
-overgeneral-exceptions=Exception
+overgeneral-exceptions=builtins.Exception

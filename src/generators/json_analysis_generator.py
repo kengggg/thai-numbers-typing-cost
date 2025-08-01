@@ -148,12 +148,16 @@ class JSONAnalysisGenerator:
                     for scenario_key, scenario in scenarios.items()
                 },
                 "savings_analysis": self._calculate_savings_analysis(scenarios),
-                "optimal_scenario": min(
-                    scenarios.keys(), key=lambda k: scenarios[k]["total_cost_minutes"]
-                ),
+                "optimal_scenario": self._get_optimal_scenario(scenarios),
             }
 
         return results_by_profile
+
+    def _get_optimal_scenario(self, scenarios: Dict[str, Any]) -> str:
+        """Get the optimal scenario key based on minimum typing cost."""
+        return min(
+            scenarios.keys(), key=lambda key: scenarios[key]["total_cost_minutes"]
+        )
 
     def _get_scenario_description(self, scenario_key: str) -> str:
         """Get human-readable description for scenario."""
@@ -401,7 +405,6 @@ class JSONAnalysisGenerator:
 
 def main():
     """Main function for standalone execution."""
-    import sys
 
     if len(sys.argv) < 2:
         print(

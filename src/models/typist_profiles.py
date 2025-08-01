@@ -61,7 +61,7 @@ class TypistProfile:
 
 
 if __name__ == "__main__":
-    """Demonstrate typist profile functionality."""
+    # Demonstrate typist profile functionality
     import sys
 
     print("🎯 Thai Numbers Typing Cost Analysis - Typist Profiles Module")
