@@ -8,7 +8,7 @@ Separates presentation logic from data generation for better portability.
 
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 
 class MarkdownRenderer:
@@ -368,7 +368,9 @@ The problem is simple: **Thai digits require the SHIFT key on Kedmanee keyboards
         return content
 
 
-def render_json_to_markdown(json_data: Dict[str, Any], output_path: str = None) -> str:
+def render_json_to_markdown(
+    json_data: Dict[str, Any], output_path: Optional[str] = None
+) -> str:
     """Convenience function to render JSON to markdown and optionally save."""
     renderer = MarkdownRenderer(json_data)
     markdown_content = renderer.render_comprehensive_report()
@@ -380,7 +382,7 @@ def render_json_to_markdown(json_data: Dict[str, Any], output_path: str = None) 
     return markdown_content
 
 
-def main():
+def main() -> None:
     """Main function for standalone execution."""
     import json
     import sys

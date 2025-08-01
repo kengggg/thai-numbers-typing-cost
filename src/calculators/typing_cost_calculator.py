@@ -6,7 +6,7 @@ Calculates the actual typing cost for the Thai constitution under different scen
 
 from typing import Dict
 
-from models.keyboard_layouts import KedmaneeLayout, PattajotiLayout
+from models.keyboard_layouts import KedmaneeLayout, PattajotiLayout, ThaiKeyboardLayout
 from models.text_analyzer import TextAnalyzer
 
 
@@ -48,7 +48,7 @@ class TypingCostCalculator:
         return text
 
     def calculate_document_cost(
-        self, keyboard_layout, digit_conversion: str = "none"
+        self, keyboard_layout: ThaiKeyboardLayout, digit_conversion: str = "none"
     ) -> Dict:
         """Calculate typing cost for the entire document."""
         text = self.analyzer.text
@@ -167,7 +167,7 @@ class TypingCostCalculator:
 
         return savings
 
-    def print_comprehensive_report(self):
+    def print_comprehensive_report(self) -> None:
         """Print a comprehensive analysis report."""
         print("=" * 80)
         print("THAI CONSTITUTION TYPING COST ANALYSIS")
@@ -262,8 +262,6 @@ class TypingCostCalculator:
                 f"  Efficiency gain: {savings[best_scenario_key]['percentage_saved']:.1f}%"
             )
 
-        return scenarios, savings
-
 
 if __name__ == "__main__":
     import os
@@ -300,7 +298,7 @@ if __name__ == "__main__":
     print("\n✅ Typing cost calculator test completed successfully!")
 
 
-def main():
+def main() -> None:
     """Main function for standalone execution - wrapper for if __name__ == '__main__' block."""
     import os
     import sys

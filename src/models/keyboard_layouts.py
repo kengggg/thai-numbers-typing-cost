@@ -43,7 +43,7 @@ class ThaiKeyboardLayout:
         self.key_map: Dict[str, KeyInfo] = {}
         self._initialize_layout()
 
-    def _initialize_layout(self):
+    def _initialize_layout(self) -> None:
         """Initialize the keyboard layout. Override in subclasses."""
         raise NotImplementedError
 
@@ -88,10 +88,10 @@ class ThaiKeyboardLayout:
 class KedmaneeLayout(ThaiKeyboardLayout):
     """Thai Kedmanee keyboard layout."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(KeyboardType.KEDMANEE)
 
-    def _initialize_layout(self):
+    def _initialize_layout(self) -> None:
         """Initialize Kedmanee layout with key positions and characteristics.
         Based on TIS 820-2535 Thai Keyboard Layout Standard.
         """
@@ -267,10 +267,10 @@ class KedmaneeLayout(ThaiKeyboardLayout):
 class PattajotiLayout(ThaiKeyboardLayout):
     """Thai Pattajoti keyboard layout."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(KeyboardType.PATTAJOTI)
 
-    def _initialize_layout(self):
+    def _initialize_layout(self) -> None:
         """Initialize Pattajoti layout with key positions and characteristics.
         Based on observed Pattajoti keyboard layout with Thai-optimized character placement.
         """
@@ -457,7 +457,7 @@ class PattajotiLayout(ThaiKeyboardLayout):
         self.key_map.update(thai_characters)
 
 
-def explain_keyboard_rows():
+def explain_keyboard_rows() -> None:
     """Explain the keyboard row system used in cost calculations.
 
     References:
@@ -499,7 +499,9 @@ def explain_keyboard_rows():
     print()
 
 
-def compare_layouts(base_keystroke_time: float = 0.28, use_weights: bool = True):
+def compare_layouts(
+    base_keystroke_time: float = 0.28, use_weights: bool = True
+) -> None:
     """Compare keyboard layouts for digit typing costs."""
     kedmanee = KedmaneeLayout()
     pattajoti = PattajotiLayout()

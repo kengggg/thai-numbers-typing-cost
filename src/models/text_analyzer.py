@@ -41,8 +41,8 @@ class TextAnalyzer:
 
     def analyze_digit_usage(self) -> Dict:
         """Detailed analysis of digit usage patterns."""
-        thai_digits = Counter()
-        intl_digits = Counter()
+        thai_digits: Counter[str] = Counter()
+        intl_digits: Counter[str] = Counter()
 
         for char in self.text:
             if char in self.thai_digit_chars:
@@ -135,7 +135,7 @@ class TextAnalyzer:
             "contexts": contexts[:10],  # First 10 contexts for preview
         }
 
-    def print_report(self):
+    def print_report(self) -> None:
         """Print a detailed analysis report."""
         stats = self.get_statistics()
 

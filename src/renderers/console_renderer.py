@@ -259,7 +259,7 @@ def render_json_to_console(
         return renderer.render_comprehensive()
 
 
-def main():
+def main() -> None:
     """Main function for standalone execution."""
     import json
     import sys

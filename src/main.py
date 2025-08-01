@@ -29,14 +29,14 @@ from renderers.console_renderer import render_json_to_console
 from renderers.markdown_renderer import render_json_to_markdown
 
 
-def create_output_directories(base_output_dir: str):
+def create_output_directories(base_output_dir: str) -> None:
     """Create output directories if they don't exist."""
     Path(base_output_dir).mkdir(parents=True, exist_ok=True)
     Path(f"{base_output_dir}/reports").mkdir(parents=True, exist_ok=True)
     Path(f"{base_output_dir}/analysis").mkdir(parents=True, exist_ok=True)
 
 
-def run_text_analysis(document_path: str, output_dir: str):
+def run_text_analysis(document_path: str, output_dir: str) -> None:
     """Run text analysis and save results."""
     print("Running text analysis...")
     analyzer = TextAnalyzer(document_path)
@@ -64,7 +64,7 @@ def run_text_analysis(document_path: str, output_dir: str):
     return analyzer
 
 
-def run_keyboard_comparison(typist_profile: Dict, output_dir: str):
+def run_keyboard_comparison(typist_profile: Dict, output_dir: str) -> None:
     """Run keyboard layout comparison."""
     print(f"\nRunning keyboard comparison for {typist_profile['name']}...")
 
@@ -147,12 +147,16 @@ def run_keyboard_comparison(typist_profile: Dict, output_dir: str):
     print(f"Keyboard comparison saved to: {output_file}")
 
 
-def run_typing_cost_analysis(document_path: str, typist_profile: Dict, output_dir: str):
+def run_typing_cost_analysis(
+    document_path: str, typist_profile: Dict, output_dir: str
+) -> None:
     """Run comprehensive typing cost analysis."""
     print(f"\nRunning typing cost analysis for {typist_profile['name']}...")
 
     calculator = TypingCostCalculator(document_path, typist_profile["keystroke_time"])
-    scenarios, savings = calculator.print_comprehensive_report()
+    calculator.print_comprehensive_report()
+    scenarios = calculator.analyze_all_scenarios()
+    savings = calculator.calculate_savings_analysis(scenarios)
 
     # Save detailed results
     profile_name_safe = (
@@ -197,10 +201,9 @@ def run_typing_cost_analysis(document_path: str, typist_profile: Dict, output_di
             )
 
     print(f"Typing cost analysis saved to: {analysis_file}")
-    return scenarios, savings
 
 
-def run_comparative_analysis(document_path: str, output_dir: str):
+def run_comparative_analysis(document_path: str, output_dir: str) -> None:
     """Run analysis across all typist profiles for comparison."""
     print("\nRunning comparative analysis across all typist skill levels...")
 
@@ -212,7 +215,9 @@ def run_comparative_analysis(document_path: str, output_dir: str):
         print(f"{'='*60}")
 
         calculator = TypingCostCalculator(document_path, profile["keystroke_time"])
-        scenarios, savings = calculator.print_comprehensive_report()
+        calculator.print_comprehensive_report()
+        scenarios = calculator.analyze_all_scenarios()
+        savings = calculator.calculate_savings_analysis(scenarios)
 
         all_results[profile_key] = {
             "profile": profile,
@@ -240,7 +245,7 @@ def run_comparative_analysis(document_path: str, output_dir: str):
 
             current_time = scenarios["thai_kedmanee"]["total_cost_minutes"]
 
-            def get_cost(key):
+            def get_cost(key: str) -> float:
                 return scenarios[key]["total_cost_minutes"]
 
             optimal_key = min(scenarios.keys(), key=get_cost)
@@ -276,10 +281,9 @@ def run_comparative_analysis(document_path: str, output_dir: str):
                 )
 
     print(f"\nComparative analysis saved to: {report_file}")
-    return all_results
 
 
-def generate_json_and_render(args):
+def generate_json_and_render(args: argparse.Namespace) -> None:
     """Generate JSON analysis and render to requested format."""
     print("\n" + "=" * 80)
     print("GENERATING JSON-FIRST ANALYSIS")
@@ -340,7 +344,7 @@ def generate_json_and_render(args):
         # Could fall back to legacy mode here if needed
 
 
-def render_from_existing_json(args):
+def render_from_existing_json(args: argparse.Namespace) -> None:
     """Render reports from existing JSON file."""
     json_file = args.render_from_json
 
@@ -390,7 +394,7 @@ def render_from_existing_json(args):
         sys.exit(1)
 
 
-def generate_legacy_markdown_report(args):
+def generate_legacy_markdown_report(args: argparse.Namespace) -> None:
     """Generate report using JSON-first approach (legacy CLI compatibility)."""
     print("\n" + "=" * 80)
     print("GENERATING FOCUSED RESEARCH REPORT (Legacy Compatibility)")
@@ -428,7 +432,7 @@ def generate_legacy_markdown_report(args):
         print("Regular analysis results are still available in the output directory.")
 
 
-def main():
+def main() -> None:
     """Main CLI application."""
     parser = argparse.ArgumentParser(
         description="Thai Numbers Typing Cost Analysis",

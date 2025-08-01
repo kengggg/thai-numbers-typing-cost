@@ -10,7 +10,7 @@ import json
 import sys
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, cast
 
 # Add parent directory to path for imports
 sys.path.append(str(Path(__file__).parent.parent))
@@ -303,7 +303,7 @@ class JSONAnalysisGenerator:
             scenarios["thai_kedmanee"]["total_cost_minutes"]
             - scenarios["intl_pattajoti"]["total_cost_minutes"]
         )
-        hours_saved_per_doc = minutes_saved / 60
+        hours_saved_per_doc: float = float(minutes_saved) / 60
 
         scales = [
             {"name": "Small Ministry", "docs_per_day": 50},
@@ -314,7 +314,7 @@ class JSONAnalysisGenerator:
 
         projections = []
         for scale in scales:
-            annual_hours = scale["docs_per_day"] * 250 * hours_saved_per_doc
+            annual_hours = cast(int, scale["docs_per_day"]) * 250 * hours_saved_per_doc
             annual_savings = annual_hours * 15  # $15/hour
 
             projections.append(
@@ -403,7 +403,7 @@ class JSONAnalysisGenerator:
             return json.load(f)
 
 
-def main():
+def main() -> None:
     """Main function for standalone execution."""
 
     if len(sys.argv) < 2:
