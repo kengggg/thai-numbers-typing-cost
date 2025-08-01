@@ -167,7 +167,7 @@ class TypingCostCalculator:
 
         return savings
 
-    def print_comprehensive_report(self) -> None:
+    def print_comprehensive_report(self):
         """Print a comprehensive analysis report."""
         print("=" * 80)
         print("THAI CONSTITUTION TYPING COST ANALYSIS")
@@ -261,6 +261,8 @@ class TypingCostCalculator:
             print(
                 f"  Efficiency gain: {savings[best_scenario_key]['percentage_saved']:.1f}%"
             )
+
+        return scenarios, savings
 
 
 if __name__ == "__main__":
