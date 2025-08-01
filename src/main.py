@@ -22,90 +22,9 @@ from renderers.markdown_renderer import render_json_to_markdown
 
 
 def create_output_directories(base_output_dir: str) -> None:
-    """Create output directories if they don't exist."""
+    """Create output directory if it doesn't exist."""
     Path(base_output_dir).mkdir(parents=True, exist_ok=True)
-    Path(f"{base_output_dir}/reports").mkdir(parents=True, exist_ok=True)
-    Path(f"{base_output_dir}/analysis").mkdir(parents=True, exist_ok=True)
 
-
-def run_comparative_analysis(document_path: str, output_dir: str) -> None:
-    """Run analysis across all typist profiles for comparison."""
-    print("\nRunning comparative analysis across all typist skill levels...")
-
-    all_results = {}
-
-    for profile_key, profile in TypistProfile.PROFILES.items():
-        print(f"\n{'='*60}")
-        print(f"ANALYZING: {profile['name']}")
-        print(f"{'='*60}")
-
-        calculator = TypingCostCalculator(document_path, profile["keystroke_time"])
-        calculator.print_comprehensive_report()
-        scenarios = calculator.analyze_all_scenarios()
-        savings = calculator.calculate_savings_analysis(scenarios)
-
-        all_results[profile_key] = {
-            "profile": profile,
-            "scenarios": scenarios,
-            "savings": savings,
-        }
-
-    # Generate comparative report
-    report_file = f"{output_dir}/reports/comparative_analysis.txt"
-    with open(report_file, "w", encoding="utf-8") as f:
-        f.write("COMPARATIVE ANALYSIS ACROSS TYPIST SKILL LEVELS\n")
-        f.write("=" * 80 + "\n\n")
-
-        # Summary table
-        f.write("SUMMARY BY TYPIST SKILL LEVEL:\n")
-        f.write(
-            f"{'Typist Level':<20} {'Current (min)':<15} {'Optimal (min)':<15} {'Savings (min)':<15} {'Savings (%)':<12}\n"
-        )
-        f.write("-" * 85 + "\n")
-
-        for profile_key, results in all_results.items():
-            profile = results["profile"]
-            scenarios = results["scenarios"]
-            savings = results["savings"]
-
-            current_time = scenarios["thai_kedmanee"]["total_cost_minutes"]
-
-            def get_cost(key: str) -> float:
-                return scenarios[key]["total_cost_minutes"]
-
-            optimal_key = min(scenarios.keys(), key=get_cost)
-            optimal_time = scenarios[optimal_key]["total_cost_minutes"]
-            time_saved = current_time - optimal_time
-            percent_saved = (time_saved / current_time) * 100
-
-            f.write(
-                f"{profile['name']:<20} {current_time:<15.1f} {optimal_time:<15.1f} {time_saved:<15.1f} {percent_saved:<12.1f}\n"
-            )
-
-        f.write("\nDETAILED RESULTS BY PROFILE:\n")
-        f.write("-" * 40 + "\n")
-
-        for profile_key, results in all_results.items():
-            profile = results["profile"]
-            scenarios = results["scenarios"]
-            savings = results["savings"]
-
-            f.write(
-                f"\n{profile['name']} ({profile['keystroke_time']}s per keystroke):\n"
-            )
-            f.write("  Scenarios:\n")
-            for scenario_name, scenario_data in scenarios.items():
-                f.write(
-                    f"    {scenario_name}: {scenario_data['total_cost_minutes']:.1f} minutes\n"
-                )
-
-            f.write("  Savings vs current:\n")
-            for scenario_name, saving_data in savings.items():
-                f.write(
-                    f"    {scenario_name}: {saving_data['time_saved_minutes']:.1f} min ({saving_data['percentage_saved']:.1f}%)\n"
-                )
-
-    print(f"\nComparative analysis saved to: {report_file}")
 
 
 def generate_json_and_render(args: argparse.Namespace) -> None:
@@ -121,7 +40,12 @@ def generate_json_and_render(args: argparse.Namespace) -> None:
             include_all_typists=args.compare_all
         )
 
-        # Save JSON if requested
+        # ALWAYS save JSON first (JSON-first architecture)
+        primary_json_path = os.path.join(args.output, "analysis.json")
+        generator.save_to_file(analysis_data, primary_json_path)
+        print(f"\n📦 JSON ANALYSIS SAVED: {primary_json_path}")
+
+        # Save additional JSON copy if custom path requested
         if args.output_json:
             json_path = args.output_json
             if not json_path.endswith(".json"):
@@ -134,7 +58,7 @@ def generate_json_and_render(args: argparse.Namespace) -> None:
                 json_full_path = os.path.join(args.output, json_path)
 
             generator.save_to_file(analysis_data, json_full_path)
-            print(f"\n📦 JSON ANALYSIS SAVED: {json_full_path}")
+            print(f"\n📦 ADDITIONAL JSON COPY SAVED: {json_full_path}")
 
         # Render to requested format
         if args.format == "markdown":

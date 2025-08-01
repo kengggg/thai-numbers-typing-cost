@@ -37,13 +37,9 @@ class TestBasicCLIWorkflows:
         assert "THAI NUMBERS TYPING COST ANALYSIS" in captured.out
         assert "Key Finding:" in captured.out
 
-        # Check that output directories were created
-        analysis_dir = tmp_path / "analysis"
-        reports_dir = tmp_path / "reports"
-        assert analysis_dir.exists()
-        assert reports_dir.exists()
-
-        # Basic analysis just creates directories, no specific files unless requested
+        # Check that JSON is always created (JSON-first architecture)
+        json_file = tmp_path / "analysis.json"
+        assert json_file.exists()
 
     def test_cli_with_different_typist_profiles(
         self, sample_thai_text_file, tmp_path, monkeypatch, capsys
@@ -139,11 +135,9 @@ class TestBasicCLIWorkflows:
         # The --compare-all flag enables comprehensive analysis across all skill levels
         # Individual profile names don't appear in console output but are included in analysis
 
-        # Should create output directories
-        reports_dir = tmp_path / "reports"
-        analysis_dir = tmp_path / "analysis"
-        assert reports_dir.exists()
-        assert analysis_dir.exists()
+        # Check that JSON is always created (JSON-first architecture)
+        json_file = tmp_path / "analysis.json"
+        assert json_file.exists()
 
     def test_cli_list_typists(self, monkeypatch, capsys):
         """Test CLI --list-typists functionality."""
@@ -481,10 +475,10 @@ class TestFileOperations:
 
         main()
 
-        # Check that directories were created
+        # Check that base output directory was created and JSON file exists
         assert output_dir.exists()
-        assert (output_dir / "reports").exists()
-        assert (output_dir / "analysis").exists()
+        json_file = output_dir / "analysis.json"
+        assert json_file.exists()
 
     def test_cli_handles_unicode_paths(self, tmp_path, monkeypatch):
         """Test CLI with Unicode file paths."""
@@ -499,9 +493,10 @@ class TestFileOperations:
 
         main()
 
-        # Should handle Unicode paths without issues
+        # Should handle Unicode paths without issues and create JSON file
         assert unicode_output.exists()
-        assert (unicode_output / "analysis").exists()
+        json_file = unicode_output / "analysis.json"
+        assert json_file.exists()
 
     def test_cli_handles_spaces_in_paths(self, tmp_path, monkeypatch):
         """Test CLI with spaces in file paths."""
@@ -516,9 +511,10 @@ class TestFileOperations:
 
         main()
 
-        # Should handle spaced paths without issues
+        # Should handle spaced paths without issues and create JSON file
         assert spaced_output.exists()
-        assert (spaced_output / "analysis").exists()
+        json_file = spaced_output / "analysis.json"
+        assert json_file.exists()
 
     def test_cli_preserves_file_encoding(self, tmp_path, monkeypatch, capsys):
         """Test that CLI preserves UTF-8 encoding in analysis."""
@@ -574,7 +570,7 @@ class TestErrorHandling:
         assert "Key Finding:" in captured.out
 
     def test_cli_handles_read_only_output_directory(
-        self, sample_thai_text_file, tmp_path, monkeypatch
+        self, sample_thai_text_file, tmp_path, monkeypatch, capsys
     ):
         """Test CLI with read-only output directory."""
         readonly_dir = tmp_path / "readonly"
@@ -585,9 +581,13 @@ class TestErrorHandling:
         monkeypatch.setattr("sys.argv", test_args)
 
         try:
-            # Should handle permission errors gracefully
-            with pytest.raises((PermissionError, OSError)):
-                main()
+            # Should handle permission errors gracefully without crashing
+            main()
+            
+            # Check that error was handled gracefully
+            captured = capsys.readouterr()
+            assert "JSON analysis failed" in captured.out
+            assert "Permission denied" in captured.out
         finally:
             # Restore permissions for cleanup
             readonly_dir.chmod(0o755)
