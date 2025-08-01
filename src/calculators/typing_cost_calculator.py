@@ -13,10 +13,9 @@ from models.keyboard_layouts import KedmaneeLayout, PattajotiLayout, KeyboardTyp
 class TypingCostCalculator:
     """Calculates typing costs for documents under different keyboard scenarios."""
     
-    def __init__(self, document_path: str, base_keystroke_time: float = 0.28, use_weights: bool = True):
+    def __init__(self, document_path: str, base_keystroke_time: float = 0.28):
         self.document_path = document_path
         self.base_keystroke_time = base_keystroke_time
-        self.use_weights = use_weights
         self.analyzer = TextAnalyzer(document_path)
         self.kedmanee = KedmaneeLayout()
         self.pattajoti = PattajotiLayout()
@@ -56,7 +55,7 @@ class TypingCostCalculator:
         
         # Calculate cost for each character
         for char in text:
-            cost = keyboard_layout.calculate_typing_cost(char, self.base_keystroke_time, self.use_weights)
+            cost = keyboard_layout.calculate_typing_cost(char, self.base_keystroke_time)
             total_cost += cost
             
             # Track character-specific costs
@@ -82,8 +81,7 @@ class TypingCostCalculator:
             'digit_costs': digit_costs,
             'keyboard_layout': keyboard_layout.layout_type.value,
             'conversion_applied': digit_conversion,
-            'base_keystroke_time': self.base_keystroke_time,
-            'use_weights': self.use_weights
+            'base_keystroke_time': self.base_keystroke_time
         }
     
     def analyze_all_scenarios(self) -> Dict:
@@ -132,7 +130,7 @@ class TypingCostCalculator:
             time_saved_minutes = time_saved_seconds / 60
             time_saved_hours = time_saved_seconds / 3600
             
-            percentage_saved = (time_saved_seconds / base_scenario['total_cost_seconds']) * 100
+            percentage_saved = (time_saved_seconds / base_scenario['total_cost_seconds']) * 100 if base_scenario['total_cost_seconds'] > 0 else 0.0
             
             savings[scenario_name] = {
                 'time_saved_seconds': time_saved_seconds,
@@ -148,10 +146,9 @@ class TypingCostCalculator:
     
     def print_comprehensive_report(self):
         """Print a comprehensive analysis report."""
-        weight_mode = "weighted" if self.use_weights else "unweighted"
         print("=" * 80)
         print("THAI CONSTITUTION TYPING COST ANALYSIS")
-        print(f"Base keystroke time: {self.base_keystroke_time}s per keystroke ({weight_mode})")
+        print(f"Base keystroke time: {self.base_keystroke_time}s per keystroke + SHIFT penalty")
         print("=" * 80)
         
         # Get basic document stats
@@ -204,7 +201,7 @@ class TypingCostCalculator:
         
         print(f"\nCurrent document uses Thai digits with these costs:")
         for digit, data in sorted(base_scenario['digit_costs'].items()):
-            cost_per_digit = data['total_cost'] / data['count']
+            cost_per_digit = data['total_cost'] / data['count'] if data['count'] > 0 else 0.0
             total_cost_seconds = data['total_cost']
             print(f"  {digit}: {data['count']:,} occurrences, {cost_per_digit*1000:.1f}ms each, {total_cost_seconds:.1f}s total")
         
@@ -215,8 +212,14 @@ class TypingCostCalculator:
         print(f"\nOPTIMAL SCENARIO ANALYSIS:")
         print(f"  Best scenario: {scenario_names[best_scenario_key]}")
         print(f"  Total time: {best_scenario['total_cost_minutes']:.1f} minutes")
-        print(f"  Time saved vs current: {savings[best_scenario_key]['time_saved_minutes']:.1f} minutes")
-        print(f"  Efficiency gain: {savings[best_scenario_key]['percentage_saved']:.1f}%")
+        
+        # Handle case where best scenario is the baseline (current state)
+        if best_scenario_key == 'thai_kedmanee':
+            print(f"  Time saved vs current: 0.0 minutes")
+            print(f"  Efficiency gain: 0.0%")
+        else:
+            print(f"  Time saved vs current: {savings[best_scenario_key]['time_saved_minutes']:.1f} minutes")
+            print(f"  Efficiency gain: {savings[best_scenario_key]['percentage_saved']:.1f}%")
         
         return scenarios, savings
 
@@ -224,19 +227,65 @@ class TypingCostCalculator:
 if __name__ == "__main__":
     import sys
     import os
+    from pathlib import Path
+    
+    # Add src directory to path for imports
+    src_dir = Path(__file__).parent.parent
+    sys.path.insert(0, str(src_dir))
     
     if len(sys.argv) < 2:
-        print("Usage: python typing_cost_calculator.py <document_path> [base_keystroke_time] [use_weights]")
-        print("  use_weights: true (default) or false")
+        print("Usage: python typing_cost_calculator.py <document_path> [base_keystroke_time]")
+        print("Example: python typing_cost_calculator.py ../data/thai-con.txt 0.28")
         sys.exit(1)
     
     document_path = sys.argv[1]
     base_time = float(sys.argv[2]) if len(sys.argv) > 2 else 0.28
-    use_weights = sys.argv[3].lower() == 'true' if len(sys.argv) > 3 else True
     
     if not os.path.exists(document_path):
         print(f"Error: Document not found at {document_path}")
         sys.exit(1)
     
-    calculator = TypingCostCalculator(document_path, base_time, use_weights)
+    print("🧮 Thai Numbers Typing Cost Calculator - Standalone Test")
+    print("=" * 70)
+    print(f"Document: {document_path}")
+    print(f"Base keystroke time: {base_time}s")
+    print("=" * 70)
+    
+    calculator = TypingCostCalculator(document_path, base_time)
     calculator.print_comprehensive_report()
+    
+    print("\n✅ Typing cost calculator test completed successfully!")
+
+
+def main():
+    """Main function for standalone execution - wrapper for if __name__ == '__main__' block."""
+    import sys
+    import os
+    from pathlib import Path
+    
+    # Add src directory to path for imports
+    src_dir = Path(__file__).parent.parent
+    sys.path.insert(0, str(src_dir))
+    
+    if len(sys.argv) < 2:
+        print("Usage: python typing_cost_calculator.py <document_path> [base_keystroke_time]")
+        print("Example: python typing_cost_calculator.py ../data/thai-con.txt 0.28")
+        sys.exit(1)
+    
+    document_path = sys.argv[1]
+    base_time = float(sys.argv[2]) if len(sys.argv) > 2 else 0.28
+    
+    if not os.path.exists(document_path):
+        print(f"Error: Document not found at {document_path}")
+        sys.exit(1)
+    
+    print("🧮 Thai Numbers Typing Cost Calculator - Standalone Test")
+    print("=" * 70)
+    print(f"Document: {document_path}")
+    print(f"Base keystroke time: {base_time}s")
+    print("=" * 70)
+    
+    calculator = TypingCostCalculator(document_path, base_time)
+    calculator.print_comprehensive_report()
+    
+    print("\n✅ Typing cost calculator test completed successfully!")

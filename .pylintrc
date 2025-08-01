@@ -1,0 +1,188 @@
+[MASTER]
+# Use multiple processes to speed up Pylint
+jobs=0
+
+# Python code to execute, usually for sys.path manipulation
+init-hook='import sys; sys.path.append("src")'
+
+# Files or directories to be skipped
+ignore=.git,__pycache__,.tox,.venv,venv,build,dist,*.egg-info
+
+# Pickle collected data for later comparisons
+persistent=yes
+
+[MESSAGES CONTROL]
+# Disable specific pylint messages
+disable=
+    # Import-related
+    import-error,
+    import-outside-toplevel,
+    
+    # Type-related (handled by mypy)
+    no-member,
+    not-callable,
+    
+    # Style preferences
+    line-too-long,  # Handled by black
+    bad-continuation,  # Handled by black
+    
+    # Documentation
+    missing-module-docstring,
+    missing-class-docstring,
+    missing-function-docstring,
+    
+    # Too restrictive for research code
+    too-few-public-methods,
+    too-many-arguments,
+    too-many-locals,
+    too-many-branches,
+    too-many-statements,
+    too-many-instance-attributes,
+    
+    # Not applicable for this project
+    duplicate-code,
+    
+    # Test-specific exemptions
+    redefined-outer-name,  # Common in pytest fixtures
+    unused-argument,  # Common in test fixtures
+    
+    # Unicode-related (we use Thai characters)
+    non-ascii-name
+
+# Enable specific checkers
+enable=
+    useless-suppression,
+    use-symbolic-message-instead
+
+[REPORTS]
+# Set the output format
+output-format=colorized
+
+# Include message's id in the output
+include-ids=yes
+
+# Template used to display messages
+msg-template='{path}:{line}:{column}: {msg_id}: {msg} ({symbol})'
+
+# Reports to generate
+reports=no
+
+# Evaluation score threshold
+score=yes
+
+[REFACTORING]
+# Maximum number of nested blocks for function / method body
+max-nested-blocks=5
+
+# Complete name of functions that never returns
+never-returning-functions=sys.exit
+
+[BASIC]
+# Naming conventions
+good-names=i,j,k,ex,Run,_,f,x,y,z,id,db,ui,io,df,ax
+
+# Regular expressions for naming conventions
+class-rgx=[A-Z_][a-zA-Z0-9]+$
+function-rgx=[a-z_][a-z0-9_]{2,30}$
+method-rgx=[a-z_][a-z0-9_]{2,30}$
+attr-rgx=[a-z_][a-z0-9_]{2,30}$
+argument-rgx=[a-z_][a-z0-9_]{2,30}$
+variable-rgx=[a-z_][a-z0-9_]{2,30}$
+module-rgx=(([a-z_][a-z0-9_]*)|([A-Z][a-zA-Z0-9]+))$
+const-rgx=(([A-Z_][A-Z0-9_]*)|(__.*__))$
+
+# Allow Thai characters in names
+class-name-hint=[A-Z_][a-zA-Z0-9\u0E00-\u0E7F]+$
+
+[FORMAT]
+# Maximum number of characters on a single line (handled by black)
+max-line-length=120
+
+# String used as indentation unit (handled by black)
+indent-string='    '
+
+# Maximum number of lines in a module
+max-module-lines=1000
+
+[LOGGING]
+# Logging modules to check
+logging-modules=logging
+
+[MISCELLANEOUS]
+# List of note tags to take in consideration
+notes=FIXME,XXX,TODO,BUG,HACK
+
+[SIMILARITIES]
+# Minimum lines number of a similarity
+min-similarity-lines=4
+
+# Ignore comments when computing similarities
+ignore-comments=yes
+
+# Ignore docstrings when computing similarities
+ignore-docstrings=yes
+
+# Ignore imports when computing similarities
+ignore-imports=no
+
+[SPELLING]
+# Spelling dictionary name
+spelling-dict=
+
+# List of comma separated words that should not be checked
+spelling-ignore-words=Kedmanee,Pattajoti,keystroke,typist,CLI,JSON,unicode,pytest,
+                      workflow,lifecycle,args,kwargs,impl,utils,config,init,
+                      docstring,inline,offline,username,filename,filepath,
+                      checkbox,dropdown,readonly,tooltip,navbar,sidebar,
+                      localhost,hostname,url,uri,http,https,api,sdk,ui,ux
+
+[TYPECHECK]
+# List of module names for which member attributes should not be checked
+ignored-modules=
+
+# List of classes names for which member attributes should not be checked
+ignored-classes=
+
+# List of members which are set dynamically and missed by pylint inference
+generated-members=
+
+[VARIABLES]
+# Tells whether we should check for unused import in __init__ files
+init-import=no
+
+# List of strings which can identify a callback function by name
+callbacks=cb_,_cb
+
+# Argument names that match this expression will be ignored
+ignored-argument-names=_.*|^ignored_|^unused_
+
+[CLASSES]
+# List of method names used to declare (i.e. assign) instance attributes
+defining-attr-methods=__init__,__new__,setUp
+
+[DESIGN]
+# Maximum number of arguments for function / method
+max-args=8
+
+# Maximum number of attributes for a class
+max-attributes=10
+
+# Minimum number of public methods for a class
+min-public-methods=1
+
+# Maximum number of public methods for a class
+max-public-methods=25
+
+# Maximum number of boolean expressions in an if statement
+max-bool-expr=5
+
+[IMPORTS]
+# Allow wildcard imports from modules
+allow-wildcard-with-all=no
+
+# Analyse import fallback blocks
+analyse-fallback-blocks=no
+
+[EXCEPTIONS]
+# Exceptions that will emit a warning when being caught
+overgeneral-exceptions=Exception

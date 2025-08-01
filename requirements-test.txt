@@ -1,0 +1,25 @@
+# Testing framework
+pytest>=7.0.0
+pytest-cov>=4.0.0
+pytest-mock>=3.10.0
+pytest-timeout>=2.1.0
+pytest-xdist>=3.0.0  # For parallel test execution
+
+# Test utilities
+coverage>=7.0.0
+factory-boy>=3.2.0  # For creating test data fixtures
+freezegun>=1.2.0    # For testing time-dependent code
+parameterized>=0.8.1  # For parameterized tests
+
+# Development utilities  
+tox>=4.0.0          # For testing across Python versions
+pre-commit>=3.0.0   # For code quality checks
+
+# JSON schema validation
+jsonschema>=4.0.0
+
+# Performance testing
+pytest-benchmark>=4.0.0  # For performance regression testing
+
+# Documentation testing
+pytest-doctests>=0.1.0  # For testing documentation examples

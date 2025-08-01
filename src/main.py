@@ -17,50 +17,11 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 from models.text_analyzer import TextAnalyzer
 from models.keyboard_layouts import KedmaneeLayout, PattajotiLayout, explain_keyboard_rows, compare_layouts
+from models.typist_profiles import TypistProfile
 from calculators.typing_cost_calculator import TypingCostCalculator
-from reporters.markdown_reporter import MarkdownReporter
-
-
-class TypistProfile:
-    """Represents different typist skill levels with associated keystroke times."""
-    
-    PROFILES = {
-        'expert': {
-            'name': 'Expert Typist (90 WPM)',
-            'keystroke_time': 0.12,
-            'description': 'Professional typist, ~90 WPM, touch typing mastery'
-        },
-        'skilled': {
-            'name': 'Skilled Typist',
-            'keystroke_time': 0.20,
-            'description': 'Experienced office worker, good typing skills'
-        },
-        'average': {
-            'name': 'Average Non-secretarial',
-            'keystroke_time': 0.28,
-            'description': 'Average office worker, moderate typing skills (default)'
-        },
-        'worst': {
-            'name': 'Worst Typist',
-            'keystroke_time': 1.2,
-            'description': 'Hunt-and-peck typist, very slow typing'
-        }
-    }
-    
-    @classmethod
-    def get_profile(cls, profile_name: str) -> Dict:
-        """Get typist profile by name."""
-        return cls.PROFILES.get(profile_name.lower())
-    
-    @classmethod
-    def list_profiles(cls):
-        """Print all available typist profiles."""
-        print("Available Typist Profiles:")
-        print("-" * 50)
-        for key, profile in cls.PROFILES.items():
-            print(f"  {key:<8}: {profile['name']} ({profile['keystroke_time']}s per keystroke)")
-            print(f"           {profile['description']}")
-            print()
+from generators.json_analysis_generator import JSONAnalysisGenerator
+from renderers.markdown_renderer import MarkdownRenderer, render_json_to_markdown
+from renderers.console_renderer import ConsoleRenderer, render_json_to_console
 
 
 def create_output_directories(base_output_dir: str):
@@ -98,29 +59,27 @@ def run_text_analysis(document_path: str, output_dir: str):
     return analyzer
 
 
-def run_keyboard_comparison(typist_profile: Dict, output_dir: str, use_weights: bool = True):
+def run_keyboard_comparison(typist_profile: Dict, output_dir: str):
     """Run keyboard layout comparison."""
-    weight_mode = "weighted" if use_weights else "unweighted"
-    print(f"\nRunning keyboard comparison for {typist_profile['name']} ({weight_mode})...")
+    print(f"\nRunning keyboard comparison for {typist_profile['name']}...")
     
     # Show explanation and comparison
     explain_keyboard_rows()
     print()
-    compare_layouts(typist_profile['keystroke_time'], use_weights)
+    compare_layouts(typist_profile['keystroke_time'])
     
     # Save results to file
     profile_name_safe = typist_profile['name'].lower().replace(' ', '_').replace('(', '').replace(')', '')
-    output_file = f"{output_dir}/analysis/keyboard_comparison_{profile_name_safe}_{weight_mode}.txt"
+    output_file = f"{output_dir}/analysis/keyboard_comparison_{profile_name_safe}.txt"
     
     # Capture the keyboard comparison output
     kedmanee = KedmaneeLayout()
     pattajoti = PattajotiLayout()
     
     with open(output_file, 'w', encoding='utf-8') as f:
-        f.write(f"KEYBOARD LAYOUT COMPARISON - {typist_profile['name']} ({weight_mode})\n")
+        f.write(f"KEYBOARD LAYOUT COMPARISON - {typist_profile['name']}\n")
         f.write("=" * 80 + "\n\n")
-        f.write(f"Base keystroke time: {typist_profile['keystroke_time']}s\n")
-        f.write(f"Weight mode: {weight_mode}\n\n")
+        f.write(f"Base keystroke time: {typist_profile['keystroke_time']}s + SHIFT penalty\n\n")
         
         # Layout info
         kedmanee_info = kedmanee.get_layout_info()
@@ -136,7 +95,7 @@ def run_keyboard_comparison(typist_profile: Dict, output_dir: str, use_weights: 
             f.write(f"  {key}: {value}\n")
         
         # Digit typing costs
-        f.write(f"\nDIGIT TYPING COSTS ({weight_mode}):\n")
+        f.write(f"\nDIGIT TYPING COSTS (base time + SHIFT penalty):\n")
         f.write("-" * 50 + "\n")
         f.write(f"{'Digit':<8} {'Kedmanee':<12} {'Pattajoti':<12} {'Difference':<12}\n")
         f.write("-" * 50 + "\n")
@@ -145,8 +104,8 @@ def run_keyboard_comparison(typist_profile: Dict, output_dir: str, use_weights: 
         f.write("Thai Digits:\n")
         thai_digits = ['๐', '๑', '๒', '๓', '๔', '๕', '๖', '๗', '๘', '๙']
         for digit in thai_digits:
-            ked_cost = kedmanee.calculate_typing_cost(digit, typist_profile['keystroke_time'], use_weights)
-            pat_cost = pattajoti.calculate_typing_cost(digit, typist_profile['keystroke_time'], use_weights)
+            ked_cost = kedmanee.calculate_typing_cost(digit, typist_profile['keystroke_time'])
+            pat_cost = pattajoti.calculate_typing_cost(digit, typist_profile['keystroke_time'])
             diff = ked_cost - pat_cost
             f.write(f"  {digit:<8} {ked_cost:<12.3f} {pat_cost:<12.3f} {diff:+.3f}\n")
         
@@ -154,8 +113,8 @@ def run_keyboard_comparison(typist_profile: Dict, output_dir: str, use_weights: 
         f.write("\nInternational Digits:\n")
         intl_digits = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
         for digit in intl_digits:
-            ked_cost = kedmanee.calculate_typing_cost(digit, typist_profile['keystroke_time'], use_weights)
-            pat_cost = pattajoti.calculate_typing_cost(digit, typist_profile['keystroke_time'], use_weights)
+            ked_cost = kedmanee.calculate_typing_cost(digit, typist_profile['keystroke_time'])
+            pat_cost = pattajoti.calculate_typing_cost(digit, typist_profile['keystroke_time'])
             diff = ked_cost - pat_cost
             f.write(f"  {digit:<8} {ked_cost:<12.3f} {pat_cost:<12.3f} {diff:+.3f}\n")
         
@@ -167,20 +126,18 @@ def run_keyboard_comparison(typist_profile: Dict, output_dir: str, use_weights: 
     print(f"Keyboard comparison saved to: {output_file}")
 
 
-def run_typing_cost_analysis(document_path: str, typist_profile: Dict, output_dir: str, use_weights: bool = True):
+def run_typing_cost_analysis(document_path: str, typist_profile: Dict, output_dir: str):
     """Run comprehensive typing cost analysis."""
-    weight_mode = "weighted" if use_weights else "unweighted"
-    print(f"\nRunning typing cost analysis for {typist_profile['name']} ({weight_mode})...")
+    print(f"\nRunning typing cost analysis for {typist_profile['name']}...")
     
-    calculator = TypingCostCalculator(document_path, typist_profile['keystroke_time'], use_weights)
+    calculator = TypingCostCalculator(document_path, typist_profile['keystroke_time'])
     scenarios, savings = calculator.print_comprehensive_report()
     
     # Save detailed results
     profile_name_safe = typist_profile['name'].lower().replace(' ', '_').replace('(', '').replace(')', '')
-    weight_suffix = "weighted" if use_weights else "unweighted"
     
     # Save typing cost analysis
-    analysis_file = f"{output_dir}/analysis/typing_cost_{profile_name_safe}_{weight_suffix}.txt"
+    analysis_file = f"{output_dir}/analysis/typing_cost_{profile_name_safe}.txt"
     with open(analysis_file, 'w', encoding='utf-8') as f:
         f.write(f"TYPING COST ANALYSIS - {typist_profile['name']}\n")
         f.write(f"Base keystroke time: {typist_profile['keystroke_time']}s\n")
@@ -206,19 +163,18 @@ def run_typing_cost_analysis(document_path: str, typist_profile: Dict, output_di
     return scenarios, savings
 
 
-def run_comparative_analysis(document_path: str, output_dir: str, use_weights: bool = True):
+def run_comparative_analysis(document_path: str, output_dir: str):
     """Run analysis across all typist profiles for comparison."""
-    weight_mode = "weighted" if use_weights else "unweighted"
-    print(f"\nRunning comparative analysis across all typist skill levels ({weight_mode})...")
+    print(f"\nRunning comparative analysis across all typist skill levels...")
     
     all_results = {}
     
     for profile_key, profile in TypistProfile.PROFILES.items():
         print(f"\n{'='*60}")
-        print(f"ANALYZING: {profile['name']} ({weight_mode})")
+        print(f"ANALYZING: {profile['name']}")
         print(f"{'='*60}")
         
-        calculator = TypingCostCalculator(document_path, profile['keystroke_time'], use_weights)
+        calculator = TypingCostCalculator(document_path, profile['keystroke_time'])
         scenarios, savings = calculator.print_comprehensive_report()
         
         all_results[profile_key] = {
@@ -228,8 +184,7 @@ def run_comparative_analysis(document_path: str, output_dir: str, use_weights: b
         }
     
     # Generate comparative report
-    weight_suffix = "weighted" if use_weights else "unweighted"
-    report_file = f"{output_dir}/reports/comparative_analysis_{weight_suffix}.txt"
+    report_file = f"{output_dir}/reports/comparative_analysis.txt"
     with open(report_file, 'w', encoding='utf-8') as f:
         f.write("COMPARATIVE ANALYSIS ACROSS TYPIST SKILL LEVELS\n")
         f.write("=" * 80 + "\n\n")
@@ -273,6 +228,126 @@ def run_comparative_analysis(document_path: str, output_dir: str, use_weights: b
     return all_results
 
 
+def generate_json_and_render(args):
+    """Generate JSON analysis and render to requested format."""
+    print("\n" + "="*80)
+    print("GENERATING JSON-FIRST ANALYSIS")
+    print("="*80)
+    
+    try:
+        # Generate JSON analysis
+        generator = JSONAnalysisGenerator(args.document)
+        analysis_data = generator.generate_comprehensive_analysis(
+            include_all_typists=args.compare_all
+        )
+        
+        # Save JSON if requested
+        if args.output_json:
+            json_path = args.output_json
+            if not json_path.endswith('.json'):
+                json_path += '.json'
+            
+            # Handle both absolute and relative paths correctly
+            if os.path.isabs(json_path):
+                json_full_path = json_path
+            else:
+                json_full_path = os.path.join(args.output, json_path)
+            
+            generator.save_to_file(analysis_data, json_full_path)
+            print(f"\n📦 JSON ANALYSIS SAVED: {json_full_path}")
+        
+        # Render to requested format
+        if args.format == 'markdown':
+            timestamp = analysis_data['metadata']['generated_at'].replace(':', '').replace('-', '').replace('T', '_').split('.')[0]
+            markdown_path = f"{args.output}/Thai_Numbers_Analysis_Report_{timestamp}.md"
+            
+            render_json_to_markdown(analysis_data, markdown_path)
+            print(f"\n📄 MARKDOWN REPORT GENERATED: {markdown_path}")
+        
+        elif args.format == 'console':
+            console_output = render_json_to_console(analysis_data, "comprehensive")
+            print("\n" + console_output)
+        
+        elif args.format == 'json':
+            # JSON already saved above, just show summary
+            console_output = render_json_to_console(analysis_data, "quick")
+            print(f"\n{console_output}")
+        
+        print(f"\n🎯 Key Finding: {analysis_data['key_findings']['improvement']['time_saved_minutes']} minutes saved per document")
+        
+    except Exception as e:
+        print(f"\n⚠️  JSON analysis failed: {e}")
+        print("Falling back to legacy analysis mode...")
+        # Could fall back to legacy mode here if needed
+
+
+def render_from_existing_json(args):
+    """Render reports from existing JSON file."""
+    json_file = args.render_from_json
+    
+    if not os.path.exists(json_file):
+        print(f"Error: JSON file not found at {json_file}")
+        sys.exit(1)
+    
+    print(f"Loading analysis data from: {json_file}")
+    
+    try:
+        # Load JSON directly without needing generator
+        import json
+        with open(json_file, 'r', encoding='utf-8') as f:
+            analysis_data = json.load(f)
+        
+        if args.format == 'markdown':
+            output_name = Path(json_file).stem + "_report.md"
+            output_path = os.path.join(args.output, output_name)
+            
+            render_json_to_markdown(analysis_data, output_path)
+            print(f"\n📄 MARKDOWN REPORT GENERATED: {output_path}")
+        
+        elif args.format == 'console':
+            console_output = render_json_to_console(analysis_data, "comprehensive")
+            print("\n" + console_output)
+        
+        elif args.format == 'json':
+            # Pretty print the JSON
+            import json
+            print(json.dumps(analysis_data, indent=2, ensure_ascii=False))
+        
+        print(f"\n🎯 Key Finding: {analysis_data['key_findings']['improvement']['time_saved_minutes']} minutes saved per document")
+        
+    except Exception as e:
+        print(f"\n⚠️  Failed to render from JSON: {e}")
+        sys.exit(1)
+
+
+def generate_legacy_markdown_report(args):
+    """Generate report using JSON-first approach (legacy CLI compatibility)."""
+    print("\n" + "="*80)
+    print("GENERATING FOCUSED RESEARCH REPORT (Legacy Compatibility)")
+    print("="*80)
+    
+    try:
+        # Use JSON-first approach for backward compatibility
+        generator = JSONAnalysisGenerator(args.document)
+        analysis_data = generator.generate_comprehensive_analysis(
+            include_all_typists=args.compare_all
+        )
+        
+        # Generate markdown report with timestamp naming
+        timestamp = analysis_data['metadata']['generated_at'].replace(':', '').replace('-', '').replace('T', '_').split('.')[0]
+        report_path = f"{args.output}/Thai_Numbers_Typing_Cost_Analysis_Report_{timestamp}.md"
+        
+        render_json_to_markdown(analysis_data, report_path)
+        
+        print(f"\n📊 RESEARCH REPORT GENERATED SUCCESSFULLY!")
+        print(f"📄 Location: {report_path}")
+        print(f"🎯 Focus: Direct comparison of Thai vs International digits typing costs")
+        
+    except Exception as e:
+        print(f"\n⚠️  Research report generation failed: {e}")
+        print("Regular analysis results are still available in the output directory.")
+
+
 def main():
     """Main CLI application."""
     parser = argparse.ArgumentParser(
@@ -280,23 +355,20 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Basic analysis with average typist (weighted by default)
+  # Basic analysis with console output
   python main.py ../data/thai-con.txt
   
-  # Analysis with expert typist, no ergonomic weights
-  python main.py ../data/thai-con.txt --typist expert --no-weights
+  # Save analysis as JSON
+  python main.py ../data/thai-con.txt --output-json analysis.json
   
-  # Compare weighted vs unweighted for average typist
-  python main.py ../data/thai-con.txt --compare-weights
+  # Generate markdown from JSON
+  python main.py --render-from-json analysis.json --format markdown
   
-  # Compare all typist levels with unweighted calculation
-  python main.py ../data/thai-con.txt --compare-all --no-weights
+  # Compare all typist levels and save as JSON + markdown
+  python main.py ../data/thai-con.txt --compare-all --output-json results.json --format markdown
   
-  # Generate comprehensive markdown report
+  # Legacy: Generate focused research report
   python main.py ../data/thai-con.txt --compare-all --markdown-report
-  
-  # Custom output directory
-  python main.py ../data/thai-con.txt --output ../custom_output/
   
   # Show available typist profiles
   python main.py --list-typists
@@ -323,22 +395,23 @@ Examples:
     parser.add_argument('--text-only', action='store_true',
                        help='Only run text analysis')
     
-    # Weight-related arguments
-    weight_group = parser.add_mutually_exclusive_group()
-    weight_group.add_argument('--use-weights', dest='use_weights', action='store_true',
-                             help='Use ergonomic difficulty multipliers (default)')
-    weight_group.add_argument('--no-weights', dest='use_weights', action='store_false', 
-                             help='Ignore ergonomic weights, use only base times and SHIFT penalty')
-    parser.set_defaults(use_weights=True)
+    # JSON-first output options
+    parser.add_argument('--output-json', metavar='JSON_FILE',
+                       help='Save analysis results as JSON file')
     
-    parser.add_argument('--compare-weights', action='store_true',
-                       help='Run analysis with both weighted and unweighted calculations')
+    parser.add_argument('--render-from-json', metavar='JSON_FILE',
+                       help='Generate reports from existing JSON file')
     
+    parser.add_argument('--format', choices=['json', 'markdown', 'console'], default='console',
+                       help='Output format (default: console)')
+    
+    # Legacy markdown support
     parser.add_argument('--markdown-report', action='store_true',
-                       help='Generate comprehensive markdown report with date/time naming')
+                       help='Generate focused research report with date/time naming (legacy)')
     
     parser.add_argument('--no-markdown', action='store_true',
-                       help='Skip automatic markdown report generation')
+                       help='Skip automatic markdown report generation (legacy)')
+    
     
     args = parser.parse_args()
     
@@ -347,8 +420,13 @@ Examples:
         TypistProfile.list_profiles()
         return
     
+    # Handle render-from-json mode
+    if args.render_from_json:
+        render_from_existing_json(args)
+        return
+    
     if not args.document:
-        parser.error("Document path is required unless using --list-typists")
+        parser.error("Document path is required unless using --list-typists or --render-from-json")
     
     # Validate document path
     if not os.path.exists(args.document):
@@ -365,14 +443,12 @@ Examples:
     # Create output directories
     create_output_directories(args.output)
     
-    weight_mode = "weighted" if args.use_weights else "unweighted"
     print("=" * 80)
     print("THAI NUMBERS TYPING COST ANALYSIS")
     print("=" * 80)
     print(f"Document: {args.document}")
     print(f"Typist Profile: {typist_profile['name']}")
-    print(f"Base Keystroke Time: {typist_profile['keystroke_time']}s")
-    print(f"Weight Mode: {weight_mode}")
+    print(f"Base Keystroke Time: {typist_profile['keystroke_time']}s + SHIFT penalty")
     print(f"Output Directory: {args.output}")
     print("=" * 80)
     
@@ -380,62 +456,25 @@ Examples:
     if args.text_only:
         run_text_analysis(args.document, args.output)
     elif args.keyboard_only:
-        if args.compare_weights:
-            print("Running keyboard comparison with both weighted and unweighted modes...")
-            run_keyboard_comparison(typist_profile, args.output, use_weights=True)
-            run_keyboard_comparison(typist_profile, args.output, use_weights=False)
-        else:
-            run_keyboard_comparison(typist_profile, args.output, args.use_weights)
+        run_keyboard_comparison(typist_profile, args.output)
     elif args.compare_all:
         run_text_analysis(args.document, args.output)
-        if args.compare_weights:
-            print("Running comparative analysis with both weighted and unweighted modes...")
-            run_comparative_analysis(args.document, args.output, use_weights=True)
-            run_comparative_analysis(args.document, args.output, use_weights=False)
-        else:
-            run_comparative_analysis(args.document, args.output, args.use_weights)
-    elif args.compare_weights:
-        # Special case: compare weighted vs unweighted for selected typist
-        run_text_analysis(args.document, args.output)
-        print("Running analysis with both weighted and unweighted modes...")
-        run_keyboard_comparison(typist_profile, args.output, use_weights=True)
-        run_keyboard_comparison(typist_profile, args.output, use_weights=False)
-        run_typing_cost_analysis(args.document, typist_profile, args.output, use_weights=True)
-        run_typing_cost_analysis(args.document, typist_profile, args.output, use_weights=False)
+        run_comparative_analysis(args.document, args.output)
     else:
-        # Full analysis for selected typist with chosen weight mode
+        # Full analysis for selected typist
         run_text_analysis(args.document, args.output)
-        run_keyboard_comparison(typist_profile, args.output, args.use_weights)
-        run_typing_cost_analysis(args.document, typist_profile, args.output, args.use_weights)
+        run_keyboard_comparison(typist_profile, args.output)
+        run_typing_cost_analysis(args.document, typist_profile, args.output)
     
     print(f"\nAnalysis complete! Results saved to: {args.output}/")
     
-    # Generate markdown report if requested or for comprehensive analyses
-    should_generate_markdown = (
-        args.markdown_report or 
-        (args.compare_all and not args.no_markdown) or
-        (args.compare_weights and not args.no_markdown)
-    )
+    # New JSON-first workflow (check first for explicit JSON requests, but not legacy)
+    if args.output_json or (args.format in ['json', 'markdown', 'console'] and not args.markdown_report and not (args.compare_all and not args.no_markdown)):
+        generate_json_and_render(args)
     
-    if should_generate_markdown:
-        print("\n" + "="*80)
-        print("GENERATING COMPREHENSIVE MARKDOWN REPORT")
-        print("="*80)
-        
-        try:
-            reporter = MarkdownReporter(args.document, args.output)
-            report_path = reporter.generate_comprehensive_report(
-                include_all_typists=args.compare_all,
-                include_weight_comparison=args.compare_weights
-            )
-            
-            print(f"\n📊 MARKDOWN REPORT GENERATED SUCCESSFULLY!")
-            print(f"📄 Location: {report_path}")
-            print(f"🎯 Features: Enhanced keyboard models, validation results, official standards")
-            
-        except Exception as e:
-            print(f"\n⚠️  Markdown report generation failed: {e}")
-            print("Regular analysis results are still available in the output directory.")
+    # Legacy markdown report support
+    elif args.markdown_report or (args.compare_all and not args.no_markdown and not args.output_json):
+        generate_legacy_markdown_report(args)
 
 
 if __name__ == "__main__":

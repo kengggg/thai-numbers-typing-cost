@@ -67,9 +67,9 @@ class TextAnalyzer:
             start, end = match.span()
             number = match.group()
             
-            # Get surrounding context (50 chars before and after)
-            context_start = max(0, start - 50)
-            context_end = min(len(self.text), end + 50)
+            # Get surrounding context (80 chars before and after)
+            context_start = max(0, start - 80)
+            context_end = min(len(self.text), end + 80)
             context = self.text[context_start:context_end]
             
             # Determine number type
@@ -105,7 +105,7 @@ class TextAnalyzer:
                 'total_characters': total_chars,
                 'total_lines': total_lines,
                 'total_digits': counts['total_digits'],
-                'digit_percentage': (counts['total_digits'] / total_chars) * 100
+                'digit_percentage': (counts['total_digits'] / total_chars) * 100 if total_chars > 0 else 0.0
             },
             'digit_counts': counts,
             'digit_analysis': analysis,
