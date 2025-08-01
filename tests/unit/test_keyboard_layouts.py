@@ -42,7 +42,7 @@ class TestKeyInfo:
         key = KeyInfo('a')
 
         assert key.char == 'a'
-        assert key.requires_shift  is False
+        assert key.requires_shift is False
         assert key.hand == "unknown"
         assert key.finger == "unknown"
         assert key.row == 0
@@ -52,7 +52,7 @@ class TestKeyInfo:
         key = KeyInfo('A', requires_shift=True, hand="left", finger="pinky", row=2)
 
         assert key.char == 'A'
-        assert key.requires_shift  is True
+        assert key.requires_shift is True
         assert key.hand == "left"
         assert key.finger == "pinky"
         assert key.row == 2
@@ -62,7 +62,7 @@ class TestKeyInfo:
         key = KeyInfo('ก', requires_shift=False, hand="left", finger="middle", row=1)
 
         assert key.char == 'ก'
-        assert key.requires_shift  is False
+        assert key.requires_shift is False
         assert key.hand == "left"
         assert key.finger == "middle"
         assert key.row == 1
@@ -72,7 +72,7 @@ class TestKeyInfo:
         key = KeyInfo('๑', requires_shift=True, hand="left", finger="pinky", row=3)
 
         assert key.char == '๑'
-        assert key.requires_shift  is True
+        assert key.requires_shift is True
         assert key.hand == "left"
         assert key.finger == "pinky"
         assert key.row == 3
@@ -84,7 +84,7 @@ class TestThaiKeyboardLayout:
     def test_base_class_cannot_be_instantiated_directly(self):
         """Test that base class raises NotImplementedError when initialized."""
         with pytest.raises(NotImplementedError):
-            layout = ThaiKeyboardLayout(KeyboardType.KEDMANEE)
+            ThaiKeyboardLayout(KeyboardType.KEDMANEE)
 
     def test_abstract_methods_must_be_implemented(self):
         """Test that subclasses must implement abstract methods."""
@@ -109,7 +109,7 @@ class TestKedmaneeLayout:
         for digit in thai_digits:
             key_info = kedmanee_layout.get_key_info(digit)
             assert key_info is not None, f"Thai digit {digit} not found in layout"
-            assert key_info.requires_shift  is True, f"Thai digit {digit} should require SHIFT"
+            assert key_info.requires_shift is True, f"Thai digit {digit} should require SHIFT"
             assert key_info.row == 3, f"Thai digit {digit} should be on row 3"
 
     def test_kedmanee_international_digits_no_shift(self, kedmanee_layout, international_digits):
@@ -117,7 +117,7 @@ class TestKedmaneeLayout:
         for digit in international_digits:
             key_info = kedmanee_layout.get_key_info(digit)
             assert key_info is not None, f"International digit {digit} not found in layout"
-            assert key_info.requires_shift  is False, f"International digit {digit} should not require SHIFT"
+            assert key_info.requires_shift is False, f"International digit {digit} should not require SHIFT"
             assert key_info.row == 3, f"International digit {digit} should be on row 3"
 
     def test_kedmanee_digit_finger_assignments(self, kedmanee_layout):
@@ -189,7 +189,7 @@ class TestPattajotiLayout:
         for digit in thai_digits:
             key_info = pattajoti_layout.get_key_info(digit)
             assert key_info is not None, f"Thai digit {digit} not found in layout"
-            assert key_info.requires_shift  is False, f"Thai digit {digit} should not require SHIFT"
+            assert key_info.requires_shift is False, f"Thai digit {digit} should not require SHIFT"
             assert key_info.row == 3, f"Thai digit {digit} should be on row 3"
 
     def test_pattajoti_international_digits_no_shift(self, pattajoti_layout, international_digits):
@@ -197,7 +197,7 @@ class TestPattajotiLayout:
         for digit in international_digits:
             key_info = pattajoti_layout.get_key_info(digit)
             assert key_info is not None, f"International digit {digit} not found in layout"
-            assert key_info.requires_shift  is False, f"International digit {digit} should not require SHIFT"
+            assert key_info.requires_shift is False, f"International digit {digit} should not require SHIFT"
             assert key_info.row == 3, f"International digit {digit} should be on row 3"
 
     def test_pattajoti_thai_digit_order(self, pattajoti_layout):

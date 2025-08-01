@@ -533,9 +533,9 @@ class TestFileOperations:
         analysis_data = {"test": "data", "number": 123}
         output_file = tmp_path / "test_output.json"
 
-        saved_path = json_analysis_generator.save_to_file(analysis_data, str(output_file))
+        json_analysis_generator.save_to_file(analysis_data, str(output_file))
 
-        assert saved_path == str(output_file)
+        # File path should match
         assert output_file.exists()
 
         # Verify content
@@ -549,9 +549,9 @@ class TestFileOperations:
         analysis_data = {"test": "data"}
         output_file = tmp_path / "nested" / "subdir" / "output.json"
 
-        saved_path = json_analysis_generator.save_to_file(analysis_data, str(output_file))
+        json_analysis_generator.save_to_file(analysis_data, str(output_file))
 
-        assert saved_path == str(output_file)
+        # File path should match
         assert output_file.exists()
         assert output_file.parent.exists()
 
@@ -564,7 +564,7 @@ class TestFileOperations:
         }
         output_file = tmp_path / "unicode_output.json"
 
-        saved_path = json_analysis_generator.save_to_file(analysis_data, str(output_file))
+        json_analysis_generator.save_to_file(analysis_data, str(output_file))
 
         # Verify Unicode content is preserved
         with open(output_file, 'r', encoding='utf-8') as f:

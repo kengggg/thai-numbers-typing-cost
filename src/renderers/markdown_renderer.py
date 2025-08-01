@@ -195,9 +195,8 @@ Based on {per_doc_savings} minutes saved per document (switching from Thai digit
             cost_savings = projection.get('annual_cost_savings', 0)
             content += f"| **{scale}** | {docs_per_day} docs | {hours_saved:,.0f} hours | ${cost_savings:,.0f} |\n"
 
-        
         efficiency_gain = self.data.get('key_findings', {}).get('improvement', {}).get('efficiency_gain_percentage', 'Unknown')
-        
+
         content += f"""
 *Based on {working_days} working days/year, ${hourly_cost}/hour labor cost*
 
@@ -237,7 +236,7 @@ Based on {per_doc_savings} minutes saved per document (switching from Thai digit
         largest_projection = projections[-1] if projections else {}
 
         primary_recommendation = recommendations.get('primary', 'Standardize on international digits (0-9) for all Thai government documents')
-        
+
         content = f"""## Conclusion & Recommendations
 
 ### Clear Finding
@@ -282,7 +281,7 @@ The problem is simple: **Thai digits require the SHIFT key on Kedmanee keyboards
             content += "Government-scale implementation would provide significant productivity improvements with minimal implementation cost.\n\n"
 
         tool_version = self.data.get('metadata', {}).get('tool_version', 'Unknown')
-        
+
         content += f"""### Bottom Line
 
 **This is a no-brainer policy change.** The research provides clear evidence that switching to international digits eliminates an unnecessary typing inefficiency that costs the Thai government time and resources. The solution is simple, cost-free, and immediately beneficial.

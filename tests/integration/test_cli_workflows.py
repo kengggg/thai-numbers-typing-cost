@@ -1,6 +1,4 @@
 import json
-from datetime import datetime
-from unittest.mock import patch
 """
 Integration tests for CLI workflows and JSON-first architecture.
 
@@ -488,7 +486,6 @@ class TestEndToEndWorkflows:
     def test_complete_analysis_workflow(self, sample_thai_text_file, tmp_path, monkeypatch, capsys):
         """Test complete analysis workflow from start to finish."""
         json_file = tmp_path / "complete_analysis.json"
-        markdown_file = tmp_path / "complete_report.md"
 
         # Step 1: Generate JSON analysis
         test_args = ['main.py', sample_thai_text_file, '--compare-all', '--output-json', str(json_file)]
