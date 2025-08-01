@@ -135,10 +135,10 @@ jobs:
         export PYTHONPATH="${PYTHONPATH}:${PWD}/src"
         python -m pytest tests/validation/ -v --tb=short
 
-    - name: Run legacy validation tests
+    - name: Verify keyboard layout validation
       run: |
         export PYTHONPATH="${PYTHONPATH}:${PWD}/src"
-        cd src && python validation_tests.py
+        python -m pytest tests/validation/test_keyboard_validation.py -v
 
   integration:
     name: Integration Tests
@@ -242,12 +242,3 @@ jobs:
           echo "PRD.txt is missing or empty"
           exit 1
         fi
-
-# Configure tox-gh-actions
-[gh-actions]
-python =
-    3.8: py38
-    3.9: py39
-    3.10: py310
-    3.11: py311
-    3.12: py312
