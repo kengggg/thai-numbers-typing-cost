@@ -1,5 +1,7 @@
 # Thai Numbers Typing Cost Analysis
 
+[![Tests](https://github.com/kengggg/thai-numbers-typing-cost/actions/workflows/ci.yml/badge.svg)](https://github.com/kengggg/thai-numbers-typing-cost/actions/workflows/ci.yml)
+
 A comprehensive research analysis tool that quantifies the typing cost difference between Thai digits (๐-๙) and international digits (0-9) in Thai government documents across different keyboard layouts and typist skill levels.
 
 ## Project Overview
@@ -14,7 +16,7 @@ thai-numbers-typing-cost/
 │   ├── models/                   # Data models and analysis classes
 │   │   ├── keyboard_layouts.py   # Kedmanee & Pattajoti keyboard models (67+ & 78+ keys)
 │   │   ├── text_analyzer.py      # Unicode-aware Thai text analysis
-│   │   └── typist_profiles.py    # Shared typist skill level definitions  
+│   │   └── typist_profiles.py    # Shared typist skill level definitions
 │   ├── calculators/              # Core calculation logic
 │   │   └── typing_cost_calculator.py # Simplified cost model (base time + SHIFT penalty)
 │   ├── generators/               # JSON data generation
@@ -130,7 +132,7 @@ All markdown reports are automatically timestamped to prevent overwrites and ens
 python main.py --render-from-json analysis.json --format markdown
 # Output: analysis_report_20250801_120606.md
 
-# Direct markdown generation also uses timestamps  
+# Direct markdown generation also uses timestamps
 python main.py ../data/thai-con.txt --format markdown --compare-all
 # Output: Thai_Numbers_Analysis_Report_20250801_120606.md
 
@@ -145,7 +147,7 @@ python main.py ../data/thai-con.txt --markdown-report --compare-all
 # Comprehensive test suite (264 tests, 100% pass rate)
 python -m pytest                                 # Full test suite
 python -m pytest tests/unit/ -v                  # Unit tests (185 tests)
-python -m pytest tests/integration/ -v           # Integration tests (54 tests)  
+python -m pytest tests/integration/ -v           # Integration tests (54 tests)
 python -m pytest tests/validation/ -v            # Validation tests (25 tests)
 
 # Test coverage and reporting
@@ -222,7 +224,7 @@ The analysis definitively answers five core research questions:
 
 ### Short-term Implementation (6-12 months)
 - **Convert existing workflows** to international digit standards
-- **Develop automated tools** for legacy document conversion  
+- **Develop automated tools** for legacy document conversion
 - **Pilot Pattajoti keyboard adoption** in Thai-heavy document environments
 
 ### Long-term Strategy (1-2 years)
