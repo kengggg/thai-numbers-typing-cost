@@ -199,7 +199,7 @@ Examples:
         # Default: project root/output (parent of src directory)
         project_root = Path(__file__).parent.parent
         output_dir = str(project_root / "output")
-    
+
     create_output_directories(output_dir)
 
     print("=" * 80)

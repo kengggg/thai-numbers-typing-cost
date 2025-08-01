@@ -36,9 +36,7 @@ class TestBasicCLIWorkflows:
 
         # Check console output
         captured = capsys.readouterr()
-        assert (
-            "AUTOMATIC COMPARISON: ALL SCENARIOS & TYPIST PROFILES" in captured.out
-        )
+        assert "AUTOMATIC COMPARISON: ALL SCENARIOS & TYPIST PROFILES" in captured.out
         assert "📦 JSON ANALYSIS SAVED" in captured.out
         assert "📄 COMPARISON REPORT GENERATED" in captured.out
 
