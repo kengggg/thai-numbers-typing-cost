@@ -120,9 +120,10 @@ Centralized in `src/models/typist_profiles.py` to resolve circular imports:
 
 ### Output Structure and File Management
 - **JSON files**: Structured analysis data for portability and reprocessing
-- **Markdown reports**: Research-focused presentation with timestamp naming
+- **Markdown reports**: Automatically timestamped (format: `analysis_report_YYYYMMDD_HHMMSS.md`) to prevent overwrites and enable historical tracking
 - **Console output**: Multiple formats (summary, quick, scenarios, comprehensive)
 - **Output directories**: `output/analysis/` and `output/reports/` (cleaned for fresh runs)
+- **Timestamp extraction**: Filenames use analysis generation time from JSON metadata for consistency
 
 ### Research Context and Findings
 The analysis answers 5 specific research questions from `PRD.txt`:

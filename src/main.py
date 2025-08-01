@@ -298,7 +298,8 @@ def render_from_existing_json(args):
             analysis_data = json.load(f)
         
         if args.format == 'markdown':
-            output_name = Path(json_file).stem + "_report.md"
+            timestamp = analysis_data['metadata']['generated_at'].replace(':', '').replace('-', '').replace('T', '_').split('.')[0]
+            output_name = Path(json_file).stem + f"_report_{timestamp}.md"
             output_path = os.path.join(args.output, output_name)
             
             render_json_to_markdown(analysis_data, output_path)

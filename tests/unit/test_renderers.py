@@ -621,7 +621,9 @@ class TestMainFunctions:
         main()
         
         captured = capsys.readouterr()
-        assert "analysis_report.md" in captured.out
+        # Should contain timestamped filename pattern: analysis_report_YYYYMMDD_HHMMSS.md
+        import re
+        assert re.search(r"analysis_report_\d{8}_\d{6}\.md", captured.out)
     
     def test_console_renderer_main_with_args(self, sample_json_analysis_data, tmp_path, monkeypatch, capsys):
         """Test console renderer main function with arguments."""

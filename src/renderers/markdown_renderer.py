@@ -366,11 +366,17 @@ def main():
         sys.exit(1)
     
     json_file = sys.argv[1]
-    output_file = sys.argv[2] if len(sys.argv) > 2 else "analysis_report.md"
     
     # Load JSON data
     with open(json_file, 'r', encoding='utf-8') as f:
         analysis_data = json.load(f)
+    
+    # Generate timestamped filename if not provided
+    if len(sys.argv) > 2:
+        output_file = sys.argv[2]
+    else:
+        timestamp = analysis_data['metadata']['generated_at'].replace(':', '').replace('-', '').replace('T', '_').split('.')[0]
+        output_file = f"analysis_report_{timestamp}.md"
     
     # Render to markdown
     saved_path = render_json_to_markdown(analysis_data, output_file)

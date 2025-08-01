@@ -108,11 +108,34 @@ python main.py ../data/thai-con.txt --compare-all --output-json ../output/compre
 
 # Multi-format rendering from same data
 python main.py --render-from-json ../output/comprehensive.json --format markdown
-python main.py --render-from-json ../output/comprehensive.json --format console --style comprehensive
-python main.py --render-from-json ../output/comprehensive.json --format console --style quick
+python main.py --render-from-json ../output/comprehensive.json --format console
 
 # Utility commands
 python main.py --list-typists                    # Show available typist profiles
+```
+
+### Automatic Report Timestamping
+
+All markdown reports are automatically timestamped to prevent overwrites and ensure unique file tracking:
+
+- **Format**: `analysis_report_YYYYMMDD_HHMMSS.md` (e.g., `analysis_report_20250801_120606.md`)
+- **Source**: Timestamp extracted from analysis metadata generation time
+- **Benefit**: Every analysis run creates a unique report file for historical tracking
+- **Legacy Support**: Timestamped reports work with all existing workflows
+
+**Examples of timestamped outputs:**
+```bash
+# JSON-first rendering creates timestamped markdown reports
+python main.py --render-from-json analysis.json --format markdown
+# Output: analysis_report_20250801_120606.md
+
+# Direct markdown generation also uses timestamps  
+python main.py ../data/thai-con.txt --format markdown --compare-all
+# Output: Thai_Numbers_Analysis_Report_20250801_120606.md
+
+# Legacy workflow also generates timestamped reports
+python main.py ../data/thai-con.txt --markdown-report --compare-all
+# Output: Thai_Numbers_Typing_Cost_Analysis_Report_20250801_120606.md
 ```
 
 ### Testing and Validation
