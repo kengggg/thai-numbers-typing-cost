@@ -464,11 +464,11 @@ class TestSystemIntegration:
         assert kedmanee_cost == expected_cost, (
             f"SHIFT penalty assumption validation failed: expected {expected_cost}, got {kedmanee_cost}"
         )
-        
+
         # Pattajoti: Thai digit doesn't require SHIFT
         pattajoti_info = pattajoti_layout.get_key_info(thai_digit)
         assert not pattajoti_info.requires_shift, "Research assumes Thai digits don't require SHIFT on Pattajoti"
-        
+
         pattajoti_cost = pattajoti_layout.calculate_typing_cost(thai_digit, base_time)
 
         assert pattajoti_cost == base_time, (
@@ -497,7 +497,7 @@ def run_all_validations():
     print("=" * 60)
     print("Enhanced validation tests using pytest framework")
     print()
-    
+
     if result.returncode == 0:
         print("🎉 ALL VALIDATIONS PASSED! Keyboard models are accurate.")
     else:
